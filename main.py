@@ -31,7 +31,7 @@ def main():
 
     response = requests.get(request_url, headers=headers)
 
-    print("REQUEST VALUES")
+    print("REQUESTS VALUES")
     print(f"Request URL: {request_url}")
     print(f"Headers: {headers}")
 
