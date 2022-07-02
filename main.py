@@ -3,8 +3,18 @@ import servicetitan
 import password
 
 def main():
-    # close.get_by_address("64 Springland Way")
+    # 'Marketing: Digital Lead \\u2013 AC whole home', 'stat_xCZrL25PGU4hpPP4JsoVPAQxcPIlMn6EQVCH9FoVidV'
 
+    me = password.get_me()
+
+    close_bot = close.Bot(password.get_close_api_key())
+
+    print(close_bot.create_opportunity(
+        me, 'stat_xCZrL25PGU4hpPP4JsoVPAQxcPIlMn6EQVCH9FoVidV',
+        0, 0, 'monthly', 'testing the API'
+    ))
+
+    '''
     service_titan_bot = servicetitan.Bot(
         password.get_client_id(),
         password.get_client_secret(),
@@ -12,9 +22,10 @@ def main():
         password.get_tenant_id()
     )
 
-    service_titan_bot.toggle_debug()
+    service_titan_bot.refresh_customers()
 
-    service_titan_bot.get_customer_data(service_titan_bot.get_customers()[7])
+    print(service_titan_bot.get_customer_data(service_titan_bot.get_customers()[7]))
+    '''
 
 if __name__ == '__main__':
     main()

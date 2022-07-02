@@ -17,7 +17,6 @@ class Bot:
         self.app_key = app_key
         self.tenant_id = tenant_id
         self.debug_mode = debug_mode
-        self.refresh_customers()
 
     def toggle_debug(self):
         if self.debug_mode:

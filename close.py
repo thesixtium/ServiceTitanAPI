@@ -2,6 +2,7 @@ import requests
 import re
 import read_requests
 
+
 class Bot:
     api_key = ""
     debug_mode = False
@@ -113,3 +114,60 @@ class Bot:
 
         print(response.content)
         print()
+
+    def create_opportunity(self, lead_id, status_id, confidence, value, value_period, note):
+        if not isinstance(lead_id, str):
+            raise ValueError("Lead ID (first parameter) is not a string")
+        if not isinstance(status_id, str):
+            raise ValueError("Status ID (second parameter) is not a string")
+        if not isinstance(confidence, int):
+            raise ValueError("Confidence (third parameter) is not an integer")
+        if not isinstance(value, int):
+            raise ValueError("Value (fourth parameter) is not an integer")
+        if not isinstance(value_period, str):
+            raise ValueError("Value Period (fifth parameter) is not a string")
+        if not isinstance(note, str):
+            raise ValueError("Note (sixth parameter) is not a string")
+
+        params = {
+            "note": note,
+            "confidence": confidence,
+            "lead_id": lead_id,
+            "status_id": status_id,
+            "value": value,
+            "value_period": value_period,
+        }
+
+        response = requests.post('https://api.close.com/api/v1/opportunity/', json=params,
+                                 auth=(self.api_key, ''))
+
+        if self.debug_mode:
+            print(f"In 'create_opportunity'")
+            read_requests.read(response)
+            print()
+
+        return response.content
+
+    def list_statuses(self):
+        response = requests.get('https://api.close.com/api/v1/opportunity/',
+                                auth=(self.api_key, ''))
+
+        if self.debug_mode:
+            print(f"In 'list_statuses'")
+            read_requests.read(response)
+            print()
+
+        status_display_names = []
+        status_ids = []
+        return_dict = {}
+
+        for status_display_name in re.finditer('(?:"status_display_name": ")[^"]*', response.content.decode()):
+            status_display_names.append(re.sub('(?:"status_display_name": ")', '', status_display_name.group()))
+
+        for status_id in re.finditer('(?:"status_id": ")[^"]*', response.content.decode()):
+            status_ids.append(re.sub('(?:"status_id": ")', '', status_id.group()))
+
+        for i in range(0, len(status_display_names)):
+            return_dict[status_display_names[i]] = status_ids[i]
+
+        return return_dict
