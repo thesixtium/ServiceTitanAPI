@@ -11,6 +11,18 @@ class Bot:
         self.api_key = api_key
         self.debug_mode = debug_mode
 
+    def list_functionalities(self):
+        print("Functionalities:")
+        print("\t- toggle_debug(): Turns off or on the debugging output")
+        print("\t- ping(): Pings Close.io server")
+        print("\t- connect(): Tries to connect to Close.io server using auth")
+        print("\t- get_by_address(address): Searches for Leads via address")
+        print("\t- get_by_lead(lead): Obtains lead information")
+        print("\t- create_opportunity(lead_id, status_id, confidence, value, value_period, note): Creates an "
+              "opportunity for a given lead")
+        print("\t- list_statuses(): List all statuses in a dictionary")
+        print("\t- create_note(lead_id, note): Create a note for a Lead")
+
     def toggle_debug(self):
         if self.debug_mode:
             self.debug_mode = False
@@ -171,3 +183,24 @@ class Bot:
             return_dict[status_display_names[i]] = status_ids[i]
 
         return return_dict
+
+    def create_note(self, lead_id, note):
+        if not isinstance(lead_id, str):
+            raise ValueError("Lead ID (first parameter) is not a string")
+        if not isinstance(note, str):
+            raise ValueError("Note (sixth parameter) is not a string")
+
+        params = {
+            "note": note,
+            "lead_id": lead_id
+        }
+
+        response = requests.post('https://api.close.com/api/v1/activity/note/', json=params,
+                                 auth=(self.api_key, ''))
+
+        if self.debug_mode:
+            print(f"In 'create_note'")
+            read_requests.read(response)
+            print()
+
+        return response.content

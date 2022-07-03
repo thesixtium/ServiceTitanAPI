@@ -9,10 +9,7 @@ def main():
 
     close_bot = close.Bot(password.get_close_api_key())
 
-    print(close_bot.create_opportunity(
-        me, 'stat_xCZrL25PGU4hpPP4JsoVPAQxcPIlMn6EQVCH9FoVidV',
-        0, 0, 'monthly', 'testing the API'
-    ))
+    close_bot.list_functionalities()
 
     '''
     service_titan_bot = servicetitan.Bot(
