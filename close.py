@@ -124,8 +124,10 @@ class Bot:
             read_requests.read(response)
             print()
 
-        print(response.content)
-        print()
+        print("String")
+        print(response.content.decode())
+
+        return response.content.decode()
 
     def create_opportunity(self, lead_id, status_id, confidence, value, value_period, note):
         if not isinstance(lead_id, str):
@@ -248,3 +250,9 @@ class Bot:
             print()
 
         return response.content
+
+    def get_contacts_from_lead_info(self, lead_id_info):
+
+        contacts_block = re.findall('"contacts": \[\{(.*?)\], "display_name":', lead_id_info)
+        print("Contacts Block")
+        print(contacts_block)
