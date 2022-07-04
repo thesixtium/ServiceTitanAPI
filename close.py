@@ -155,6 +155,8 @@ class Bot:
 
         if self.debug_mode:
             print(f"In 'create_opportunity'")
+            print("Params:")
+            print("\t" + str(params))
             read_requests.read(response)
             print()
 
@@ -200,6 +202,48 @@ class Bot:
 
         if self.debug_mode:
             print(f"In 'create_note'")
+            print("Params:")
+            print("\t" + str(params))
+            read_requests.read(response)
+            print()
+
+        return response.content
+
+    def log_phone_call(self, lead_id, contact_id, created_by, direction, notes, duration, phone_number):
+        if not isinstance(lead_id, str):
+            raise ValueError("Lead ID (first parameter) is not a string")
+        if not isinstance(contact_id, str):
+            raise ValueError("Contact ID (second parameter) is not a string")
+        if not isinstance(created_by, str):
+            raise ValueError("Created By (third parameter) is not a string")
+        if not (direction == "outbound" or direction == "inbound"):
+            raise ValueError("Direction (fourth parameter) is not 'inbound' or 'outbound'")
+        if not isinstance(notes, str):
+            raise ValueError("Notes (fifth parameter) is not a string")
+        if not isinstance(duration, int):
+            raise ValueError("Duration (sixth parameter) is not an int")
+        if not isinstance(phone_number, str):
+            raise ValueError("Phone Number (seventh parameter) is not a string")
+
+        params = {
+            "lead_id": lead_id,
+            "contact_id": contact_id,
+            "created_by": created_by,
+            "user_id": created_by,
+            "direction": direction,  # outbound or inbound
+            "status": "completed",
+            "note": notes,
+            "duration": duration,
+            "phone": phone_number,
+        }
+
+        response = requests.post('https://api.close.com/api/v1/activity/call/', json=params,
+                                 auth=(self.api_key, ''))
+
+        if self.debug_mode:
+            print(f"In 'log_content'")
+            print("Params:")
+            print("\t" + str(params))
             read_requests.read(response)
             print()
 
