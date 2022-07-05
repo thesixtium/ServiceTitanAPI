@@ -134,7 +134,7 @@ class Bot:
     def get_customer_data(self, customer_id):
         request_url = 'https://api-integration.servicetitan.io/crm/v2/tenant/' \
                       + self.tenant_id \
-                      + '/leads/' \
+                      + '/Customers/' \
                       + customer_id
         access_token = self.get_access_token()
         app_key = self.app_key
@@ -153,4 +153,78 @@ class Bot:
             read_requests.read(response)
             print()
 
-        return response.content
+        return response.content.decode()
+
+    def get_customer_contacts(self, customer_id):
+        request_url = 'https://api-integration.servicetitan.io/crm/v2/tenant/' \
+                      + self.tenant_id \
+                      + '/Customers/' \
+                      + customer_id \
+                      + '/contacts'
+        access_token = self.get_access_token()
+        app_key = self.app_key
+
+        headers = {
+            'Authorization': access_token,
+            'ST-App-Key': app_key
+        }
+
+        response = requests.get(request_url, headers=headers)
+
+        if self.debug_mode:
+            print(f"In 'get_customer_data' with 'customer_id={customer_id}'")
+            print(f"Headers: {headers}")
+            print(f"Request URL: {request_url}")
+            read_requests.read(response)
+            print()
+
+        return response.content.decode()
+
+    def get_customer_notes(self, customer_id):
+        request_url = 'https://api-integration.servicetitan.io/crm/v2/tenant/' \
+                      + self.tenant_id \
+                      + '/Customers/' \
+                      + customer_id \
+                      + '/notes'
+        access_token = self.get_access_token()
+        app_key = self.app_key
+
+        headers = {
+            'Authorization': access_token,
+            'ST-App-Key': app_key
+        }
+
+        response = requests.get(request_url, headers=headers)
+
+        if self.debug_mode:
+            print(f"In 'get_customer_data' with 'customer_id={customer_id}'")
+            print(f"Headers: {headers}")
+            print(f"Request URL: {request_url}")
+            read_requests.read(response)
+            print()
+
+        return response.content.decode()
+
+    def get_postal_code_from_customer_id(self, customer_id):
+        request_url = 'https://api-integration.servicetitan.io/crm/v2/tenant/' \
+                      + self.tenant_id \
+                      + '/Customers/' \
+                      + customer_id
+        access_token = self.get_access_token()
+        app_key = self.app_key
+
+        headers = {
+            'Authorization': access_token,
+            'ST-App-Key': app_key
+        }
+
+        response = requests.get(request_url, headers=headers)
+
+        if self.debug_mode:
+            print(f"In 'get_customer_data' with 'customer_id={customer_id}'")
+            print(f"Headers: {headers}")
+            print(f"Request URL: {request_url}")
+            read_requests.read(response)
+            print()
+
+        return re.findall("[A-Z][0-9][A-Z][.|\s]{0,1}[0-9][A-Z][0-9]", response.content.decode())[0]

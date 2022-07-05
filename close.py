@@ -124,7 +124,6 @@ class Bot:
             read_requests.read(response)
             print()
 
-        print("String")
         print(response.content.decode())
 
         return response.content.decode()

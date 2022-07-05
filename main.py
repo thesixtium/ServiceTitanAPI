@@ -10,20 +10,25 @@ def main():
 
     close_bot = close.Bot(password.get_close_api_key())
 
-    lead = close_bot.get_by_lead(me)
-    close_bot.get_contacts_from_lead_info(lead)
+    for _ in range(0, 5):
+        lead = close_bot.get_by_lead(me)
+
     '''
 
     service_titan_bot = servicetitan.Bot(
-        password.get_client_id(),
-        password.get_client_secret(),
-        password.get_app_key(),
-        password.get_tenant_id()
-    )
+            password.get_client_id(),
+            password.get_client_secret(),
+            password.get_app_key(),
+            password.get_tenant_id()
+        )
 
     service_titan_bot.refresh_customers()
 
-    print(service_titan_bot.get_customer_data(service_titan_bot.get_customers()[7]))
+    customer = service_titan_bot.get_customers()[0]
+
+    print(service_titan_bot.get_postal_code_from_customer_id(customer))
+    print()
+
 
 
 if __name__ == '__main__':
