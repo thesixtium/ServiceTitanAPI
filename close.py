@@ -112,8 +112,12 @@ class Bot:
             read_requests.read(response)
             print()
 
+        return_responce = []
+
         for lead in re.finditer('(lead_)[^"]+', decoded_responce):
-            self.get_by_lead(lead.group())
+            return_responce.append(lead.group())
+
+        return return_responce
 
     def get_by_lead(self, lead):
         response = requests.get('https://api.close.com/api/v1/lead/' + lead + '/',
@@ -123,8 +127,6 @@ class Bot:
             print(f"In 'get_by_lead' with lead={lead}")
             read_requests.read(response)
             print()
-
-        print(response.content.decode())
 
         return response.content.decode()
 
@@ -253,5 +255,11 @@ class Bot:
     def get_contacts_from_lead_info(self, lead_id_info):
 
         contacts_block = re.findall('"contacts": \[\{(.*?)\], "display_name":', lead_id_info)
-        print("Contacts Block")
-        print(contacts_block)
+
+        return contacts_block
+
+    def get_contacts_from_lead_id(self, lead_id):
+        info = []
+        while not info:
+            info = self.get_contacts_from_lead_info(self.get_by_lead(lead_id))
+        return info

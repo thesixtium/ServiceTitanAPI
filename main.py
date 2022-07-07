@@ -1,34 +1,22 @@
-import close
-import servicetitan
+import integration
 import password
 
 def main():
-    '''
-    # 'Marketing: Digital Lead \\u2013 AC whole home', 'stat_xCZrL25PGU4hpPP4JsoVPAQxcPIlMn6EQVCH9FoVidV'
+    integration_bot = integration.Bot(
+        password.get_close_api_key(),
+        password.get_client_id(),
+        password.get_client_secret(),
+        password.get_app_key(),
+        password.get_tenant_id()
+    )
 
     me = password.get_me()
 
-    close_bot = close.Bot(password.get_close_api_key())
+    customer = "17991716"
 
-    for _ in range(0, 5):
-        lead = close_bot.get_by_lead(me)
+    pair = integration_bot.map_single_st_customer_to_close_lead(customer)
 
-    '''
-
-    service_titan_bot = servicetitan.Bot(
-            password.get_client_id(),
-            password.get_client_secret(),
-            password.get_app_key(),
-            password.get_tenant_id()
-        )
-
-    service_titan_bot.refresh_customers()
-
-    customer = service_titan_bot.get_customers()[0]
-
-    print(service_titan_bot.get_postal_code_from_customer_id(customer))
-    print()
-
+    integration_bot.check_contact_info(pair[0])
 
 
 if __name__ == '__main__':

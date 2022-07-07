@@ -228,3 +228,34 @@ class Bot:
             print()
 
         return re.findall("[A-Z][0-9][A-Z][.|\s]{0,1}[0-9][A-Z][0-9]", response.content.decode())[0]
+
+    def get_locations_from_customer_id(self, customer_id):
+        request_url = 'https://api-integration.servicetitan.io/crm/v2/tenant/' \
+                      + self.tenant_id \
+                      + '/locations?ids&customerId=' \
+                      + customer_id
+        access_token = self.get_access_token()
+        app_key = self.app_key
+
+        headers = {
+            'Authorization': access_token,
+            'ST-App-Key': app_key
+        }
+
+        response = requests.get(request_url, headers=headers)
+
+        if self.debug_mode:
+            print(f"In 'get_locations_from_customer_id' with 'customer_id={customer_id}'")
+            print(f"Headers: {headers}")
+            print(f"Request URL: {request_url}")
+            read_requests.read(response)
+            print()
+
+        response = response.content.decode()
+        return_responce = []
+
+        response = re.finditer('"street":"[^"]+', response)
+        for i in response:
+            return_responce.append(re.sub('"street":"', "", i.group()))
+
+        return return_responce
