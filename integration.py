@@ -87,6 +87,14 @@ class Bot:
 
         st_notes = self.service_titan_bot.get_notes_from_customer_id(st_customer)
         close_notes = self.close_bot.get_notes_from_lead_id(close_lead)
+        close_work_orders = self.close_bot.get_oppertunities_from_lead_id(close_lead)
+        close_info = []
+
+        for note in close_notes:
+            close_info.append(note)
+
+        for order in close_work_orders:
+            close_info.append(order)
 
         print(st_notes)
         print(close_notes)

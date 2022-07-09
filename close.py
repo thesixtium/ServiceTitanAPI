@@ -120,14 +120,11 @@ class Bot:
         return return_responce
 
     def get_by_lead(self, lead):
-        response_list = []
-
-        for _ in range(0, 10):
-            response_list.append(requests.get('https://api.close.com/api/v1/lead/' + lead + '/',
-                                auth=(self.api_key, '')).content.decode())
+        response = requests.get('https://api.close.com/api/v1/lead/' + lead + '/',
+                                auth=(self.api_key, '')).content.decode()
 
 
-        return max(response_list, key=len)
+        return response
 
     def create_opportunity(self, lead_id, status_id, confidence, value, value_period, note):
         if not isinstance(lead_id, str):
@@ -253,10 +250,7 @@ class Bot:
 
     def get_contacts_from_lead_info(self, lead_id_info):
         return_array = []
-        print()
-        print("Lead Info:")
         print(lead_id_info)
-        print()
         contacts_block = re.findall('"contacts": \[\{(.*?)\], "display_name":', lead_id_info)
         for contact in contacts_block:
             return_array.append([re.findall('cont_[^"]+', contact)[0], contact])
@@ -278,3 +272,52 @@ class Bot:
             all_notes.append(re.sub('"note": "', '', note.group()))
 
         return all_notes
+
+    def get_oppertunities_from_lead_id(self, lead_id):
+        lead = self.get_by_lead(lead_id)
+        opportunities = re.finditer('oppo_[^"]+', lead)
+
+        return_opportunities = []
+
+        for opportunity in opportunities:
+            '''
+            [
+                {
+                    "annualized_expected_value": 14250, 
+                    "contact_id": null, 
+                    "updated_by": "user_dtvmEJq528wzu0lrDpueTimvnKCiCBNOMWXN2XVgfyn", 
+                    "updated_by_name": "AICA Team", 
+                    "value": 28500, 
+                    "expected_value": 14250, 
+                    "note": "Work Order Service Item ID: 142\\nWork Order Service Item Count: 1.0\\n\\nService Item Info: \\n\\nService Item ID: 5\\nService Item Name: SV-FS-DFM\\nService Item Description: Deluxe Furnace Cleaning and Inspection Package\\nService Item Category: Flat Rate\\n\\nWork Order Info: \\n\\nWork Order ID: 1906\\nWork Order Status: Incomplete\\nWork Order Technician: ZAFA - Aleksander Berezowski\\nWork Order Description: AICA MJB to show SR\\nWork Order Start Date: 08/25/18 09:00:00 AM\\nWork Order End Date: 08/25/18 10:30:00 AM", 
+                    "value_period": "one_time", 
+                    "confidence": 50, 
+                    "status_type": "active", 
+                    "value_currency": "CAD", 
+                    "value_formatted": "CA$285", 
+                    "date_lost": null, 
+                    "created_by_name": "AIC Home Experts", 
+                    "user_name": "AICA Team", 
+                    "date_created": "2018-08-25T21:32:19+00:00", 
+                    "user_id": "user_dtvmEJq528wzu0lrDpueTimvnKCiCBNOMWXN2XVgfyn", 
+                    "status_label": "Incomplete", 
+                    "integration_links": [], 
+                    "id": "oppo_hbACaPzdIZTGqGjj7ZwRfoiRkYPXGlEzFKWSzYeQU6g", 
+                    "contact_name": null, 
+                    "date_updated": "2019-11-08T20:35:18.432000+00:00", 
+                    "created_by": "user_i0reekzwIGhp2uJ1uFpz3h2XbcgE6AAEmhCCEcYA6wK", 
+                    "status_display_name": "Sales: Incomplete", 
+                    "date_won": "2018-08-25", 
+                    "lead_id": "lead_EFhM0QJfK7nZph1wcf2biUTOYbYonuDFGLtSp74LTD2", 
+                    "lead_name": "64 Springland Way Rocky View County", 
+                    "status_id": "stat_lOETStVSkb7EULoeYUpIJ6arAtVntYTOwjPJBTZ3tEt", 
+                    "annualized_value": 28500, 
+                    "organization_id": "orga_L2V5FxfidEatwuiL6qzxlWweyCb9Zm3NBspfQFlfY3B"}
+                '''
+            response = requests.get(f'https://api.close.com/api/v1/opportunity/{opportunity.group()}',
+                                    auth=(self.api_key, ''))
+            note = re.sub('"note": "', '', re.findall('"note": "[^"]+', response.content.decode())[0])
+            value_formatted = re.sub('"value_formatted": "', '', re.findall('"value_formatted": "[^"]+', response.content.decode())[0])
+            return_opportunities.append(f"Value: {value_formatted}\\n{note}")
+
+        return return_opportunities
