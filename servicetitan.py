@@ -259,3 +259,56 @@ class Bot:
             return_responce.append(re.sub('"street":"', "", i.group()))
 
         return return_responce
+
+    def get_notes_from_customer_id(self, customer_id):
+        request_url = 'https://api-integration.servicetitan.io/crm/v2/tenant/' \
+                      + self.tenant_id \
+                      + '/customers/' \
+                      + customer_id \
+                      + "/notes"
+        access_token = self.get_access_token()
+        app_key = self.app_key
+
+        headers = {
+            'Authorization': access_token,
+            'ST-App-Key': app_key
+        }
+
+        response = requests.get(request_url, headers=headers)
+
+        if self.debug_mode:
+            print(f"In 'get_locations_from_customer_id' with 'customer_id={customer_id}'")
+            print(f"Headers: {headers}")
+            print(f"Request URL: {request_url}")
+            read_requests.read(response)
+            print()
+
+        response = response.content.decode()
+        responces = []
+        response = re.finditer('"text":"[^"]+', response)
+        for text in response:
+            responces.append(re.sub('"text":"', '', text.group()))
+
+        return responces
+
+    def create_note_for_customer_id(self, customer_id, note):
+        request_url = 'https://api-integration.servicetitan.io/crm/v2/tenant/' \
+                      + self.tenant_id \
+                      + '/customers/' \
+                      + customer_id \
+                      + "/notes"
+        access_token = self.get_access_token()
+        app_key = self.app_key
+
+        headers = {
+            'Authorization': access_token,
+            'ST-App-Key': app_key
+        }
+
+        params = {
+            "test": note
+        }
+
+        response = requests.post(request_url, headers=headers, data=params)
+
+        return response.content.decode()

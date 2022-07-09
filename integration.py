@@ -31,26 +31,74 @@ class Bot:
 
         return close_locations
 
+    def check_pair(self, pair_to_check):
+        self.check_contact_info(pair_to_check)
+        self.check_notes(pair_to_check)
+
     def check_contact_info(self, pair_to_check):
+        print("Checking Contact Info")
         st_customer = pair_to_check[0]
         close_lead = pair_to_check[1]
 
-        close_contact = self.close_bot.get_contacts_from_lead_id(close_lead)
-        st_contact = self.service_titan_bot.get_customer_contacts(st_customer)
+        close_contacts = self.close_bot.get_contacts_from_lead_id(close_lead)
+        for close_contact in close_contacts:
+            print(close_contact)
+            close_contact_id = str(close_contact[0])
+            close_contact = close_contact[1]
+            st_contact = str(self.service_titan_bot.get_customer_contacts(st_customer))
 
-        close_contact = self.close_bot.get_contacts_from_lead_id(close_lead)
-        st_contact = self.service_titan_bot.get_customer_contacts(st_customer)
+            print(close_contact)
+            print(st_contact)
 
-        print(close_contact)
-        print(st_contact)
+            st_numbers = []
+            st_numbers_matching_patterns = ['"type":"Phone","value":"', '"phoneNumber":"']
 
-        st_numbers = []
-        st_numbers_matching_patterns = ['"type":"Phone","value":"', '"phoneNumber":"']
+            close_numbers = []
+            close_numbers_matching_patterns = ['"phone": "\+1', '"phoneNumber":"']
 
-        for pattern in st_numbers_matching_patterns:
-            for match in re.finditer(pattern + '[^"]+', st_contact):
-                number = re.sub(pattern, "", match.group())
+            for pattern in st_numbers_matching_patterns:
+                for match in re.finditer(pattern + '[^"]+', st_contact):
+                    number = re.sub(pattern, "", match.group())
+                    if number not in st_numbers:
+                        st_numbers.append(number)
+
+            for pattern in close_numbers_matching_patterns:
+                for match in re.finditer(pattern + '[^"]+', close_contact):
+                    number = re.sub(pattern, "", match.group())
+                    if number not in close_numbers:
+                        close_numbers.append(number)
+
+            untouched = True
+            for number in close_numbers:
                 if number not in st_numbers:
-                    st_numbers.append(number)
+                    print(f"Need to add {number}")
+                    untouched = False
 
-        print(st_numbers)
+            if untouched:
+                print("No additions needed")
+
+        print()
+
+    def check_notes(self, pair_to_check):
+        print("Check Notes")
+
+        st_customer = pair_to_check[0]
+        close_lead = pair_to_check[1]
+
+        st_notes = self.service_titan_bot.get_notes_from_customer_id(st_customer)
+        close_notes = self.close_bot.get_notes_from_lead_id(close_lead)
+
+        print(st_notes)
+        print(close_notes)
+
+        untouched = True
+        for note in close_notes:
+            if note not in st_notes:
+                print(f"Need to add {note}")
+                print(self.service_titan_bot.create_note_for_customer_id(st_customer, note))
+                untouched = False
+
+        if untouched:
+            print("No additions needed")
+
+        print()

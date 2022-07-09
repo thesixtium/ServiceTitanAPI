@@ -120,15 +120,14 @@ class Bot:
         return return_responce
 
     def get_by_lead(self, lead):
-        response = requests.get('https://api.close.com/api/v1/lead/' + lead + '/',
-                                auth=(self.api_key, ''))
+        response_list = []
 
-        if self.debug_mode:
-            print(f"In 'get_by_lead' with lead={lead}")
-            read_requests.read(response)
-            print()
+        for _ in range(0, 10):
+            response_list.append(requests.get('https://api.close.com/api/v1/lead/' + lead + '/',
+                                auth=(self.api_key, '')).content.decode())
 
-        return response.content.decode()
+
+        return max(response_list, key=len)
 
     def create_opportunity(self, lead_id, status_id, confidence, value, value_period, note):
         if not isinstance(lead_id, str):
@@ -253,13 +252,29 @@ class Bot:
         return response.content
 
     def get_contacts_from_lead_info(self, lead_id_info):
-
+        return_array = []
+        print()
+        print("Lead Info:")
+        print(lead_id_info)
+        print()
         contacts_block = re.findall('"contacts": \[\{(.*?)\], "display_name":', lead_id_info)
+        for contact in contacts_block:
+            return_array.append([re.findall('cont_[^"]+', contact)[0], contact])
 
-        return contacts_block
+        return return_array
 
     def get_contacts_from_lead_id(self, lead_id):
         info = []
         while not info:
             info = self.get_contacts_from_lead_info(self.get_by_lead(lead_id))
         return info
+
+    def get_notes_from_lead_id(self, lead_id):
+        lead = self.get_by_lead(lead_id)
+        notes = re.finditer('"note": "[^"]+', lead)
+        all_notes = []
+
+        for note in notes:
+            all_notes.append(re.sub('"note": "', '', note.group()))
+
+        return all_notes

@@ -12,11 +12,11 @@ def main():
 
     me = password.get_me()
 
-    customer = "17991716"
+    customer = "22965632"
 
     pair = integration_bot.map_single_st_customer_to_close_lead(customer)
 
-    integration_bot.check_contact_info(pair[0])
+    integration_bot.check_pair(pair[0])
 
 
 if __name__ == '__main__':
