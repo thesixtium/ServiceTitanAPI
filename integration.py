@@ -32,6 +32,9 @@ class Bot:
         return close_locations
 
     def check_pair(self, pair_to_check):
+        for _ in range(0,1000):
+            print("Stuff goes FROM ServiceTitan INTO Close, reverse everything")
+            print("Put ST jobs INTO close")
         self.check_contact_info(pair_to_check)
         self.check_notes(pair_to_check)
 
