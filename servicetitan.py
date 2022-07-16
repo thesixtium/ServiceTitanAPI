@@ -1,6 +1,7 @@
 import requests
 import re
 import read_requests
+import json
 
 
 class Bot:
@@ -291,12 +292,11 @@ class Bot:
 
         return responces
 
-    def create_note_for_customer_id(self, customer_id, note):
-        request_url = 'https://api-integration.servicetitan.io/crm/v2/tenant/' \
+    def get_jobs_from_customer_id(self, customer_id):
+        request_url = 'https://api-integration.servicetitan.io/jpm/v2/tenant/' \
                       + self.tenant_id \
-                      + '/customers/' \
-                      + customer_id \
-                      + "/notes"
+                      + '/jobs?page&customerId=' \
+                      + customer_id
         access_token = self.get_access_token()
         app_key = self.app_key
 
@@ -305,10 +305,93 @@ class Bot:
             'ST-App-Key': app_key
         }
 
-        params = {
-            "test": note
+        response = requests.get(request_url, headers=headers)
+
+        if self.debug_mode:
+            print(f"In 'get_locations_from_customer_id' with 'customer_id={customer_id}'")
+            print(f"Headers: {headers}")
+            print(f"Request URL: {request_url}")
+            read_requests.read(response)
+            print()
+
+        response = response.content.decode()
+        res = json.loads(response)
+
+        print(res)
+
+        return_list = []
+
+        for job in res["data"]:
+            job_status = job["jobStatus"]
+            completed_on = job["completedOn"]
+            summary = job["summary"]
+            sold_by = job["customFields"][1]["value"]
+            appointments = self.get_appointments_from_job_id(job["id"])
+            estimates = self.get_estimates_from_job_id(job["id"])
+            return_string = f"https://go.servicetitan.com/#/Job/Index/{job['id']}"
+
+            titles = ["Job ID", "Job Status", "Completed On", "Summary", "Sold By"]
+            info = [str(job["id"]), job_status, completed_on, summary, sold_by]
+
+            for i in range(0, len(titles)):
+                return_string += titles[i] + ": " + info[i] + "\\n"
+
+            return_string += "Appointments: "
+            for appointment in appointments:
+                return_string += "\\n\\t- " + appointment
+
+            return_string += "\\nEstimates: "
+            for estimate in estimates:
+                return_string += "\\n\\t- " + estimate
+
+            return_list.append(return_string)
+
+        return return_list
+
+    def get_appointments_from_job_id(self, job_id):
+        request_url = 'https://api-integration.servicetitan.io/jpm/v2/tenant/' \
+                      + self.tenant_id \
+                      + '/appointments?ids&jobId=' \
+                      + job_id
+        access_token = self.get_access_token()
+        app_key = self.app_key
+
+        headers = {
+            'Authorization': access_token,
+            'ST-App-Key': app_key
         }
 
-        response = requests.post(request_url, headers=headers, data=params)
+        response = requests.get(request_url, headers=headers)
+        response = response.content.decode()
+        res = json.loads(response)
 
-        return response.content.decode()
+        append_list = []
+
+        for appointment in res["data"]:
+            append_list.append(appointment["id"])
+
+        return append_list
+
+    def get_estimates_from_job_id(self, job_id):
+        request_url = 'https://api-integration.servicetitan.io/jpm/v2/tenant/' \
+                      + self.tenant_id \
+                      + '/estimates?ids&jobId=' \
+                      + job_id
+        access_token = self.get_access_token()
+        app_key = self.app_key
+
+        headers = {
+            'Authorization': access_token,
+            'ST-App-Key': app_key
+        }
+
+        response = requests.get(request_url, headers=headers)
+        response = response.content.decode()
+        res = json.loads(response)
+
+        append_list = []
+
+        for estimate in res["data"]:
+            append_list.append(f"https://go.servicetitan.com/#/estimate/{estimate['id']}")
+
+        return append_list

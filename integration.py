@@ -32,11 +32,16 @@ class Bot:
         return close_locations
 
     def check_pair(self, pair_to_check):
-        for _ in range(0,1000):
-            print("Stuff goes FROM ServiceTitan INTO Close, reverse everything")
-            print("Put ST jobs INTO close")
-        self.check_contact_info(pair_to_check)
-        self.check_notes(pair_to_check)
+        '''
+        Opportunity info by way of Link to https://go.servicetitan.com/#/Opportunity/33027509
+
+        Project info by way of Link to https://go.servicetitan.com/#/project/33027506  (if exists, most times unlikely)
+
+        Invoice info (from accounting)
+        '''
+        # self.check_contact_info(pair_to_check)
+        # self.check_notes(pair_to_check)
+        self.check_jobs(pair_to_check)
 
     def check_contact_info(self, pair_to_check):
         print("Checking Contact Info")
@@ -72,8 +77,8 @@ class Bot:
                         close_numbers.append(number)
 
             untouched = True
-            for number in close_numbers:
-                if number not in st_numbers:
+            for number in st_numbers:
+                if number not in close_numbers:
                     print(f"Need to add {number}")
                     untouched = False
 
@@ -90,26 +95,45 @@ class Bot:
 
         st_notes = self.service_titan_bot.get_notes_from_customer_id(st_customer)
         close_notes = self.close_bot.get_notes_from_lead_id(close_lead)
-        close_work_orders = self.close_bot.get_oppertunities_from_lead_id(close_lead)
-        close_info = []
-
-        for note in close_notes:
-            close_info.append(note)
-
-        for order in close_work_orders:
-            close_info.append(order)
 
         print(st_notes)
         print(close_notes)
 
         untouched = True
-        for note in close_notes:
-            if note not in st_notes:
+        for note in st_notes:
+            if note not in close_notes:
                 print(f"Need to add {note}")
-                print(self.service_titan_bot.create_note_for_customer_id(st_customer, note))
                 untouched = False
 
         if untouched:
             print("No additions needed")
 
         print()
+
+    def check_jobs(self, pair_to_check):
+        print("Check Notes")
+
+        '''
+        Job info by way of Link to https://go.servicetitan.com/#/Job/Index/33027507
+        AND info on :  
+        •	Job Status
+        •	Job SoldBy
+        •	Job Completed on
+        •	Job Summary
+        •	{tenant}/appointments          info
+        '''
+
+        st_customer = pair_to_check[0]
+        close_lead = pair_to_check[1]
+
+        close_notes = self.close_bot.get_notes_from_lead_id(close_lead)
+        st_jobs = self.service_titan_bot.get_jobs_from_customer_id(st_customer)
+
+        untouched = True
+        for note in st_jobs:
+            if note not in close_notes:
+                print(f"Need to add {note}")
+                untouched = False
+
+        if untouched:
+            print("No additions needed")
