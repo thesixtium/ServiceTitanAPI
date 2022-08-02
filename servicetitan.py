@@ -317,9 +317,12 @@ class Bot:
         response = response.content.decode()
         res = json.loads(response)
 
-        print(res)
+        if self.debug_mode:
+            print("Res:")
+            print(res)
 
         return_list = []
+        value = 0
 
         for job in res["data"]:
             job_status = job["jobStatus"]
@@ -328,31 +331,81 @@ class Bot:
             sold_by = job["customFields"][1]["value"]
             appointments = self.get_appointments_from_job_id(job["id"])
             estimates = self.get_estimates_from_job_id(job["id"])
-            return_string = f"https://go.servicetitan.com/#/Job/Index/{job['id']}"
+            invoices = self.get_invoices_from_job_id(job["id"])
 
-            titles = ["Job ID", "Job Status", "Completed On", "Summary", "Sold By"]
-            info = [str(job["id"]), job_status, completed_on, summary, sold_by]
+            return_string = "Opportunity:\n"
+            return_string += f"Job URL: https://go.servicetitan.com/#/Job/Index/{job['id']}\n"
+            return_string += f'Job ID: {job["id"]}\t|\tJob Status: {job_status}\n'
+            return_string += f'Completed On: {completed_on}\t|\tSummary: {summary}\n'
+            return_string += f'Sold By: {sold_by}\n'
 
-            for i in range(0, len(titles)):
-                return_string += titles[i] + ": " + info[i] + "\\n"
-
-            return_string += "Appointments: "
+            return_string += "Appointment ID's: "
             for appointment in appointments:
-                return_string += "\\n\\t- " + appointment
+                return_string += f" {appointment},"
 
-            return_string += "\\nEstimates: "
+            return_string = return_string[:-1]
+
+            return_string += "\n\nInvoice ID's: "
+            for invoice in invoices["ids"]:
+                return_string += f" {invoice},"
+
+            return_string = return_string[:-1]
+
+            return_string += "\n\nEstimate ID's: "
             for estimate in estimates:
-                return_string += "\\n\\t- " + estimate
+                return_string += f" {estimate},"
+
+            return_string = return_string[:-1]
+
+            return_string += "\n\nItems: "
+            for item in invoices["items"]:
+                return_string += f"\n\t - ${item[2]}: {item[0]} - {item[1]}"
 
             return_list.append(return_string)
+            value += invoices["value"]
 
-        return return_list
+        return [return_list, value]
+
+    def get_invoices_from_job_id(self, job_id):
+        request_url = 'https://api-integration.servicetitan.io/accounting/v2/tenant/' \
+                      + self.tenant_id \
+                      + '/invoices?ids&jobId=' \
+                      + str(job_id)
+        access_token = self.get_access_token()
+        app_key = self.app_key
+
+        headers = {
+            'Authorization': access_token,
+            'ST-App-Key': app_key
+        }
+
+        response = requests.get(request_url, headers=headers)
+        response = response.content.decode()
+        res = json.loads(response)
+
+        return_data = {
+            "value": 0,
+            "ids": [],
+            "items": []
+        }
+
+        for invoice in res["data"]:
+            return_data["value"] += float(invoice["total"])
+            return_data["ids"].append(invoice["id"])
+            for item in invoice["items"]:
+                return_data["items"].append([
+                    item["id"],
+                    item["description"],
+                    item["cost"]
+                ])
+
+        return return_data
 
     def get_appointments_from_job_id(self, job_id):
         request_url = 'https://api-integration.servicetitan.io/jpm/v2/tenant/' \
                       + self.tenant_id \
                       + '/appointments?ids&jobId=' \
-                      + job_id
+                      + str(job_id)
         access_token = self.get_access_token()
         app_key = self.app_key
 
@@ -373,10 +426,10 @@ class Bot:
         return append_list
 
     def get_estimates_from_job_id(self, job_id):
-        request_url = 'https://api-integration.servicetitan.io/jpm/v2/tenant/' \
+        request_url = 'https://api-integration.servicetitan.io/sales/v2/tenant/' \
                       + self.tenant_id \
-                      + '/estimates?ids&jobId=' \
-                      + job_id
+                      + '/estimates?jobId&ids=' \
+                      + str(job_id)
         access_token = self.get_access_token()
         app_key = self.app_key
 
@@ -395,3 +448,51 @@ class Bot:
             append_list.append(f"https://go.servicetitan.com/#/estimate/{estimate['id']}")
 
         return append_list
+
+    def get_projects_from_customer_id(self, customer_id):
+        request_url = 'https://api-integration.servicetitan.io/jpm/v2/tenant/' \
+                      + self.tenant_id \
+                      + '/projects?ids&customerId=' \
+                      + customer_id
+        access_token = self.get_access_token()
+        app_key = self.app_key
+
+        headers = {
+            'Authorization': access_token,
+            'ST-App-Key': app_key
+        }
+
+        response = requests.get(request_url, headers=headers)
+        response = response.content.decode()
+        res = json.loads(response)
+
+        return_urls = []
+
+        for project in res["data"]:
+            return_urls.append(f"Project: https://go.servicetitan.com/#/project/{project['id']}")
+
+        return return_urls
+
+    def get_invoices_from_customer_id(self, customer_id):
+        request_url = 'https://api-integration.servicetitan.io/accounting/v2/tenant/' \
+                      + self.tenant_id \
+                      + '/invoices?ids&customerId=' \
+                      + customer_id
+        access_token = self.get_access_token()
+        app_key = self.app_key
+
+        headers = {
+            'Authorization': access_token,
+            'ST-App-Key': app_key
+        }
+
+        response = requests.get(request_url, headers=headers)
+        response = response.content.decode()
+        res = json.loads(response)
+
+        return_urls = []
+
+        for invoice in res["data"]:
+            return_urls.append(f"Invoice: https://go.servicetitan.com/#/invoice/{invoice['id']}")
+
+        return return_urls

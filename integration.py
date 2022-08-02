@@ -1,6 +1,13 @@
 import close
 import servicetitan
 import re
+import json
+
+'''
+Make sure to map from ST ADDRESS to Close ADDRESS
+Make sure opportunities are made, not notes
+'''
+
 
 class Bot:
     close_bot = None
@@ -22,41 +29,45 @@ class Bot:
     def map_single_st_customer_to_close_lead(self, customer_number):
         locations = self.service_titan_bot.get_locations_from_customer_id(customer_number)
 
+        for place in locations:
+            print(place)
+
         close_locations = []
 
         for location in locations:
             addresses = self.close_bot.get_by_address(location)
+            pattern = re.compile(location)
             for address in addresses:
-                close_locations.append([customer_number, address])
+                response = self.close_bot.get_by_lead(address)
+                res = json.loads(response)
+                if pattern.match(res["display_name"]):
+                    close_locations.append([customer_number, address])
 
         return close_locations
 
     def check_pair(self, pair_to_check):
-        '''
-        Opportunity info by way of Link to https://go.servicetitan.com/#/Opportunity/33027509
-
-        Project info by way of Link to https://go.servicetitan.com/#/project/33027506  (if exists, most times unlikely)
-
-        Invoice info (from accounting)
-        '''
-        # self.check_contact_info(pair_to_check)
-        # self.check_notes(pair_to_check)
+        self.check_contact_info(pair_to_check)
+        self.check_notes(pair_to_check)
         self.check_jobs(pair_to_check)
+        self.check_projects(pair_to_check)
+        self.check_invoices(pair_to_check)
 
     def check_contact_info(self, pair_to_check):
-        print("Checking Contact Info")
+        print("\nChecking Contact Info")
         st_customer = pair_to_check[0]
         close_lead = pair_to_check[1]
 
         close_contacts = self.close_bot.get_contacts_from_lead_id(close_lead)
         for close_contact in close_contacts:
-            print(close_contact)
-            close_contact_id = str(close_contact[0])
+            if self.debug_mode:
+                print(close_contact)
+
             close_contact = close_contact[1]
             st_contact = str(self.service_titan_bot.get_customer_contacts(st_customer))
 
-            print(close_contact)
-            print(st_contact)
+            if self.debug_mode:
+                print(close_contact)
+                print(st_contact)
 
             st_numbers = []
             st_numbers_matching_patterns = ['"type":"Phone","value":"', '"phoneNumber":"']
@@ -85,10 +96,8 @@ class Bot:
             if untouched:
                 print("No additions needed")
 
-        print()
-
     def check_notes(self, pair_to_check):
-        print("Check Notes")
+        print("\nCheck Notes")
 
         st_customer = pair_to_check[0]
         close_lead = pair_to_check[1]
@@ -96,22 +105,10 @@ class Bot:
         st_notes = self.service_titan_bot.get_notes_from_customer_id(st_customer)
         close_notes = self.close_bot.get_notes_from_lead_id(close_lead)
 
-        print(st_notes)
-        print(close_notes)
-
-        untouched = True
-        for note in st_notes:
-            if note not in close_notes:
-                print(f"Need to add {note}")
-                untouched = False
-
-        if untouched:
-            print("No additions needed")
-
-        print()
+        self.check_things(close_lead, close_notes, st_notes)
 
     def check_jobs(self, pair_to_check):
-        print("Check Notes")
+        print("\nCheck Jobs")
 
         '''
         Job info by way of Link to https://go.servicetitan.com/#/Job/Index/33027507
@@ -129,11 +126,73 @@ class Bot:
         close_notes = self.close_bot.get_notes_from_lead_id(close_lead)
         st_jobs = self.service_titan_bot.get_jobs_from_customer_id(st_customer)
 
+        self.check_things(close_lead, close_notes, st_jobs, also_add_opp=True)
+
+    def check_projects(self, pair_to_check):
+        print("\nCheck Projects")
+
+        st_customer = pair_to_check[0]
+        close_lead = pair_to_check[1]
+
+        close_notes = self.close_bot.get_notes_from_lead_id(close_lead)
+        st_jobs = self.service_titan_bot.get_projects_from_customer_id(st_customer)
+
+        self.check_things(close_lead, close_notes, st_jobs)
+
+    def check_invoices(self, pair_to_check):
+        print("\nCheck Invoices")
+
+        st_customer = pair_to_check[0]
+        close_lead = pair_to_check[1]
+
+        close_notes = self.close_bot.get_notes_from_lead_id(close_lead)
+        st_jobs = self.service_titan_bot.get_invoices_from_customer_id(st_customer)
+
+        self.check_things(close_lead, close_notes, st_jobs)
+
+    def get_all_customers(self):
+        self.service_titan_bot.refresh_customers()
+        return self.service_titan_bot.get_customers()
+
+    def check_things(self, close_lead, close_stuff, st_stuff, also_add_opp=False):
+        value = 0
+        if also_add_opp:
+            value = st_stuff[1]
+            st_stuff = st_stuff[0]
+
         untouched = True
-        for note in st_jobs:
-            if note not in close_notes:
-                print(f"Need to add {note}")
-                untouched = False
+        for note in st_stuff:
+            note2 = note.replace("\n", "\\n").replace("\t", "\\t")[:-1]
+            note3 = note.replace("\t", "\\t")[:-1]
+            note4 = note.replace("\n", "\\n")[:-1]
+            note5 = note.replace("\n", "\\n").replace("\t", "\\t")
+            note6 = note.replace("\t", "\\t")
+            note7 = note.replace("\n", "\\n")
+            if note not in close_stuff \
+                    and note2 not in close_stuff \
+                    and note3 not in close_stuff \
+                    and note4 not in close_stuff \
+                    and note5 not in close_stuff \
+                    and note6 not in close_stuff \
+                    and note7 not in close_stuff:
+                flag = True
+                for item in close_stuff:
+                    if note in item or note2 in item:
+                        flag = False
+                if flag:
+                    print("Need to Add A Note")
+                    print(f"\t'{note}'")
+                    self.close_bot.create_note(close_lead, note)
+                    if also_add_opp:
+                        self.close_bot.create_opportunity(
+                            close_lead,
+                            "stat_gRPUDopxzt6p7bLbXtes2xoD2Rv09toRNWcKJN6nDrc",
+                            50,
+                            int(value),
+                            "one_time",
+                            note)
+
+                    untouched = False
 
         if untouched:
             print("No additions needed")

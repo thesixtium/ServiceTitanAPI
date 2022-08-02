@@ -1,3 +1,5 @@
+import json
+
 import requests
 import re
 import read_requests
@@ -122,7 +124,6 @@ class Bot:
     def get_by_lead(self, lead):
         response = requests.get('https://api.close.com/api/v1/lead/' + lead + '/',
                                 auth=(self.api_key, '')).content.decode()
-
 
         return response
 
@@ -250,9 +251,15 @@ class Bot:
 
     def get_contacts_from_lead_info(self, lead_id_info):
         return_array = []
-        print(lead_id_info)
         contacts_block = re.findall('"contacts": \[\{(.*?)\], "display_name":', lead_id_info)
+
+        if contacts_block is None:
+            return return_array
+
         for contact in contacts_block:
+            contact_list = [re.findall('cont_[^"]+', contact)]
+            if contact_list == [[]]:
+                continue
             return_array.append([re.findall('cont_[^"]+', contact)[0], contact])
 
         return return_array
@@ -264,12 +271,23 @@ class Bot:
         return info
 
     def get_notes_from_lead_id(self, lead_id):
-        lead = self.get_by_lead(lead_id)
-        notes = re.finditer('"note": "[^"]+', lead)
+        skip = 0
+        has_more = True
         all_notes = []
+        while has_more:
+            url = f'https://api.close.com/api/v1/activity/note/?_skip={skip}&_limit=100'
+            response = requests.get(url,
+                                    params={'lead_id': lead_id},
+                                    auth=(self.api_key, '')
+                                    )
 
-        for note in notes:
-            all_notes.append(re.sub('"note": "', '', note.group()))
+            res = json.loads(response.content.decode())
+
+            for note in res["data"]:
+                all_notes.append(note["note"])
+
+            has_more = res["has_more"]
+            skip += len(res["data"])
 
         return all_notes
 
@@ -317,7 +335,8 @@ class Bot:
             response = requests.get(f'https://api.close.com/api/v1/opportunity/{opportunity.group()}',
                                     auth=(self.api_key, ''))
             note = re.sub('"note": "', '', re.findall('"note": "[^"]+', response.content.decode())[0])
-            value_formatted = re.sub('"value_formatted": "', '', re.findall('"value_formatted": "[^"]+', response.content.decode())[0])
-            return_opportunities.append(f"Value: {value_formatted}\\n{note}")
+            value_formatted = re.sub('"value_formatted": "', '',
+                                     re.findall('"value_formatted": "[^"]+', response.content.decode())[0])
+            return_opportunities.append(f"Value: {value_formatted}\n{note}")
 
         return return_opportunities
