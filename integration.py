@@ -150,8 +150,8 @@ class Bot:
 
         self.check_things(close_lead, close_notes, st_jobs)
 
-    def get_all_customers(self):
-        self.service_titan_bot.refresh_customers()
+    def get_all_customers(self, modifiedOnOrAfter):
+        self.service_titan_bot.refresh_customers(modifiedOnOrAfter)
         return self.service_titan_bot.get_customers()
 
     def check_things(self, close_lead, close_stuff, st_stuff, also_add_opp=False):

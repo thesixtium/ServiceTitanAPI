@@ -37,7 +37,8 @@ class Bot:
                + '&client_secret=' \
                + self.client_secret
 
-        response = requests.post('https://auth-integration.servicetitan.io/connect/token', headers=headers, data=data)
+        response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)
+        res = json.loads(response.content.decode())
 
         if self.debug_mode:
             print("In 'get_access_token'")
@@ -46,10 +47,10 @@ class Bot:
             read_requests.read(response)
             print()
 
-        return re.search("[t][o][k][e][n][\"][:].?[\"][\S]{130,}[\"]", response.content.decode("utf-8")).group()[8:6139]
+        return res["access_token"]
 
     def connect(self):
-        request_url = 'https://api-integration.servicetitan.io/settings/v2/tenant/' \
+        request_url = 'https://api.servicetitan.io/settings/v2/tenant/' \
                       + self.tenant_id \
                       + '/employees'
         access_token = self.get_access_token()
@@ -71,11 +72,13 @@ class Bot:
 
         return response
 
-    def get_customers_from_page(self, page=1):
-        request_url = 'https://api-integration.servicetitan.io/crm/v2/tenant/' \
+    def get_customers_from_page(self, modifiedOnOrAfter, page=1):
+        request_url = 'https://api.servicetitan.io/crm/v2/tenant/' \
                       + self.tenant_id \
                       + '/customers?page=' \
-                      + str(page)
+                      + str(page) \
+                      + '&modifiedOnOrAfter=' \
+                      + modifiedOnOrAfter
         access_token = self.get_access_token()
         app_key = self.app_key
 
@@ -95,7 +98,7 @@ class Bot:
 
         return response
 
-    def refresh_customers(self):
+    def refresh_customers(self, modifiedOnOrAfter):
         page = 1
         has_more = True
         return_data = []
@@ -107,7 +110,7 @@ class Bot:
             if self.debug_mode:
                 print(f"On page {page}")
 
-            response = self.get_customers_from_page(page)
+            response = self.get_customers_from_page(modifiedOnOrAfter, page)
             content = response.content.decode()
             ids = re.finditer('[i][d]["][:][^,]*', content)
 
@@ -133,7 +136,7 @@ class Bot:
         return self.all_customers
 
     def get_customer_data(self, customer_id):
-        request_url = 'https://api-integration.servicetitan.io/crm/v2/tenant/' \
+        request_url = 'https://api.servicetitan.io/crm/v2/tenant/' \
                       + self.tenant_id \
                       + '/Customers/' \
                       + customer_id
@@ -157,7 +160,7 @@ class Bot:
         return response.content.decode()
 
     def get_customer_contacts(self, customer_id):
-        request_url = 'https://api-integration.servicetitan.io/crm/v2/tenant/' \
+        request_url = 'https://api.servicetitan.io/crm/v2/tenant/' \
                       + self.tenant_id \
                       + '/Customers/' \
                       + customer_id \
@@ -182,7 +185,7 @@ class Bot:
         return response.content.decode()
 
     def get_customer_notes(self, customer_id):
-        request_url = 'https://api-integration.servicetitan.io/crm/v2/tenant/' \
+        request_url = 'https://api.servicetitan.io/crm/v2/tenant/' \
                       + self.tenant_id \
                       + '/Customers/' \
                       + customer_id \
@@ -207,7 +210,7 @@ class Bot:
         return response.content.decode()
 
     def get_postal_code_from_customer_id(self, customer_id):
-        request_url = 'https://api-integration.servicetitan.io/crm/v2/tenant/' \
+        request_url = 'https://api.servicetitan.io/crm/v2/tenant/' \
                       + self.tenant_id \
                       + '/Customers/' \
                       + customer_id
@@ -231,7 +234,7 @@ class Bot:
         return re.findall("[A-Z][0-9][A-Z][.|\s]{0,1}[0-9][A-Z][0-9]", response.content.decode())[0]
 
     def get_locations_from_customer_id(self, customer_id):
-        request_url = 'https://api-integration.servicetitan.io/crm/v2/tenant/' \
+        request_url = 'https://api.servicetitan.io/crm/v2/tenant/' \
                       + self.tenant_id \
                       + '/locations?ids&customerId=' \
                       + customer_id
@@ -244,6 +247,7 @@ class Bot:
         }
 
         response = requests.get(request_url, headers=headers)
+        print(response.content.decode())
 
         if self.debug_mode:
             print(f"In 'get_locations_from_customer_id' with 'customer_id={customer_id}'")
@@ -262,7 +266,7 @@ class Bot:
         return return_responce
 
     def get_notes_from_customer_id(self, customer_id):
-        request_url = 'https://api-integration.servicetitan.io/crm/v2/tenant/' \
+        request_url = 'https://api.servicetitan.io/crm/v2/tenant/' \
                       + self.tenant_id \
                       + '/customers/' \
                       + customer_id \
@@ -293,7 +297,7 @@ class Bot:
         return responces
 
     def get_jobs_from_customer_id(self, customer_id):
-        request_url = 'https://api-integration.servicetitan.io/jpm/v2/tenant/' \
+        request_url = 'https://api.servicetitan.io/jpm/v2/tenant/' \
                       + self.tenant_id \
                       + '/jobs?page&customerId=' \
                       + customer_id
@@ -367,7 +371,7 @@ class Bot:
         return [return_list, value]
 
     def get_invoices_from_job_id(self, job_id):
-        request_url = 'https://api-integration.servicetitan.io/accounting/v2/tenant/' \
+        request_url = 'https://api.servicetitan.io/accounting/v2/tenant/' \
                       + self.tenant_id \
                       + '/invoices?ids&jobId=' \
                       + str(job_id)
@@ -402,7 +406,7 @@ class Bot:
         return return_data
 
     def get_appointments_from_job_id(self, job_id):
-        request_url = 'https://api-integration.servicetitan.io/jpm/v2/tenant/' \
+        request_url = 'https://api.servicetitan.io/jpm/v2/tenant/' \
                       + self.tenant_id \
                       + '/appointments?ids&jobId=' \
                       + str(job_id)
@@ -426,7 +430,7 @@ class Bot:
         return append_list
 
     def get_estimates_from_job_id(self, job_id):
-        request_url = 'https://api-integration.servicetitan.io/sales/v2/tenant/' \
+        request_url = 'https://api.servicetitan.io/sales/v2/tenant/' \
                       + self.tenant_id \
                       + '/estimates?jobId&ids=' \
                       + str(job_id)
@@ -450,7 +454,7 @@ class Bot:
         return append_list
 
     def get_projects_from_customer_id(self, customer_id):
-        request_url = 'https://api-integration.servicetitan.io/jpm/v2/tenant/' \
+        request_url = 'https://api.servicetitan.io/jpm/v2/tenant/' \
                       + self.tenant_id \
                       + '/projects?ids&customerId=' \
                       + customer_id
@@ -474,7 +478,7 @@ class Bot:
         return return_urls
 
     def get_invoices_from_customer_id(self, customer_id):
-        request_url = 'https://api-integration.servicetitan.io/accounting/v2/tenant/' \
+        request_url = 'https://api.servicetitan.io/accounting/v2/tenant/' \
                       + self.tenant_id \
                       + '/invoices?ids&customerId=' \
                       + customer_id
