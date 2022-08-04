@@ -29,13 +29,12 @@ class Bot:
     def map_single_st_customer_to_close_lead(self, customer_number):
         locations = self.service_titan_bot.get_locations_from_customer_id(customer_number)
 
-        for place in locations:
-            print(place)
-
         close_locations = []
 
         for location in locations:
             addresses = self.close_bot.get_by_address(location)
+            if not addresses:
+                addresses = [self.close_bot.create_lead(location)]
             pattern = re.compile(location)
             for address in addresses:
                 response = self.close_bot.get_by_lead(address)
@@ -57,40 +56,23 @@ class Bot:
         st_customer = pair_to_check[0]
         close_lead = pair_to_check[1]
 
+        st_contact = self.service_titan_bot.get_customer_contacts(st_customer)
+        st_phones = []
+        for phone in st_contact:
+            st_phones.append(re.sub("[^0-9]", "", phone["phoneSettings"]["phoneNumber"]))
+
         close_contacts = self.close_bot.get_contacts_from_lead_id(close_lead)
+
         for close_contact in close_contacts:
-            if self.debug_mode:
-                print(close_contact)
-
-            close_contact = close_contact[1]
-            st_contact = str(self.service_titan_bot.get_customer_contacts(st_customer))
-
-            if self.debug_mode:
-                print(close_contact)
-                print(st_contact)
-
-            st_numbers = []
-            st_numbers_matching_patterns = ['"type":"Phone","value":"', '"phoneNumber":"']
-
-            close_numbers = []
-            close_numbers_matching_patterns = ['"phone": "\+1', '"phoneNumber":"']
-
-            for pattern in st_numbers_matching_patterns:
-                for match in re.finditer(pattern + '[^"]+', st_contact):
-                    number = re.sub(pattern, "", match.group())
-                    if number not in st_numbers:
-                        st_numbers.append(number)
-
-            for pattern in close_numbers_matching_patterns:
-                for match in re.finditer(pattern + '[^"]+', close_contact):
-                    number = re.sub(pattern, "", match.group())
-                    if number not in close_numbers:
-                        close_numbers.append(number)
+            close_phones = []
+            for phone in close_contact["phones"]:
+                close_phones.append(re.sub("[^0-9]", "", phone["phone"]))
 
             untouched = True
-            for number in st_numbers:
-                if number not in close_numbers:
+            for number in st_phones:
+                if number not in close_phones:
                     print(f"Need to add {number}")
+                    self.close_bot.add_phone(close_lead, number)
                     untouched = False
 
             if untouched:

@@ -174,15 +174,9 @@ class Bot:
         }
 
         response = requests.get(request_url, headers=headers)
+        res = json.loads(response.content.decode())
 
-        if self.debug_mode:
-            print(f"In 'get_customer_data' with 'customer_id={customer_id}'")
-            print(f"Headers: {headers}")
-            print(f"Request URL: {request_url}")
-            read_requests.read(response)
-            print()
-
-        return response.content.decode()
+        return res["data"]
 
     def get_customer_notes(self, customer_id):
         request_url = 'https://api.servicetitan.io/crm/v2/tenant/' \
@@ -337,11 +331,9 @@ class Bot:
             estimates = self.get_estimates_from_job_id(job["id"])
             invoices = self.get_invoices_from_job_id(job["id"])
 
-            return_string = "Opportunity:\n"
-            return_string += f"Job URL: https://go.servicetitan.com/#/Job/Index/{job['id']}\n"
-            return_string += f'Job ID: {job["id"]}\t|\tJob Status: {job_status}\n'
-            return_string += f'Completed On: {completed_on}\t|\tSummary: {summary}\n'
-            return_string += f'Sold By: {sold_by}\n'
+            return_string = f"Job URL: https://go.servicetitan.com/#/Job/Index/{job['id']}\n"
+            return_string += f'Job ID: {job["id"]}\t|\tSold By: {sold_by}\n'
+            return_string += f'Date Completed: {completed_on}\t|\tSummary: {summary}\n'
 
             return_string += "Appointment ID's: "
             for appointment in appointments:
@@ -349,21 +341,15 @@ class Bot:
 
             return_string = return_string[:-1]
 
-            return_string += "\n\nInvoice ID's: "
-            for invoice in invoices["ids"]:
-                return_string += f" {invoice},"
-
-            return_string = return_string[:-1]
-
             return_string += "\n\nEstimate ID's: "
             for estimate in estimates:
-                return_string += f" {estimate},"
+                return_string += f"\n\t- https://go.servicetitan.com/#/estimate/{estimate},"
 
             return_string = return_string[:-1]
 
             return_string += "\n\nItems: "
             for item in invoices["items"]:
-                return_string += f"\n\t - ${item[2]}: {item[0]} - {item[1]}"
+                return_string += f"\n\t- ${item[1]}: {item[0]} - {item[2]}"
 
             return_list.append(return_string)
             value += invoices["value"]
@@ -398,9 +384,9 @@ class Bot:
             return_data["ids"].append(invoice["id"])
             for item in invoice["items"]:
                 return_data["items"].append([
-                    item["id"],
-                    item["description"],
-                    item["cost"]
+                    item["skuName"],
+                    item["price"],
+                    re.sub("T.*Z", "", item["serviceDate"])
                 ])
 
         return return_data

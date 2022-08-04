@@ -11,13 +11,14 @@ def main():
         password.get_tenant_id()
     )
 
-    # When status on job is finished, need to change Close opp to won
-    # Notes appointments: Make links instead of just ID's
-    # Make sure events (notes) get added chronologically
-    # Put custom field in close of ST mapping
-    # Currently doesn't check if won or not
-    # For opps use the won, invoiced, completed, etc statuses PROPERLY on the opps w/ patch requests
-    # SWITCH OVER TO PRODUCTION INVIROMENT, NOT INTEGRATION
+    '''
+    Testing - either bigger test batch or sandbox
+    When status on job is finished, need to change Close opp to won
+    Make sure events (notes) get added chronologically
+    Put custom field in close of ST mapping
+    Currently doesn't check if won or not
+    For opps use the won, invoiced, completed, etc statuses PROPERLY on the opps w/ patch requests
+    '''
 
     customer = "22965632"
     pair = integration_bot.map_single_st_customer_to_close_lead(customer)
@@ -34,7 +35,7 @@ def run(first=False):
             password.get_tenant_id()
         )
 
-        date = datetime.datetime(2022, 4, 30)
+        date = datetime.datetime(2022, 5, 30)
 
         all_customers = integration_bot.get_all_customers(date)
 
@@ -55,7 +56,7 @@ def run(first=False):
             )
 
             today = datetime.datetime.now(datetime.timezone.utc)
-            delta = datetime.timedelta(days=14)
+            delta = datetime.timedelta(days=4)
             two_weeks_ago = (today - delta).isoformat()
 
             all_customers = integration_bot.get_all_customers(two_weeks_ago)

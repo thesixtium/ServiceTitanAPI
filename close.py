@@ -250,19 +250,24 @@ class Bot:
         return response.content
 
     def get_contacts_from_lead_info(self, lead_id_info):
-        return_array = []
-        contacts_block = re.findall('"contacts": \[\{(.*?)\], "display_name":', lead_id_info)
+        res = json.loads(lead_id_info)
 
-        if contacts_block is None:
-            return return_array
+        return res["data"]["contacts"]
 
-        for contact in contacts_block:
-            contact_list = [re.findall('cont_[^"]+', contact)]
-            if contact_list == [[]]:
-                continue
-            return_array.append([re.findall('cont_[^"]+', contact)[0], contact])
+    def add_phone(self, lead_id, phone):
+        params = {
+            "lead_id": lead_id,
+            "name": "ST Add Phone Number",
+            "phones": [
+                {
+                    "phone": phone
+                 }
+            ]
+        }
 
-        return return_array
+        response = requests.post('https://api.close.com/api/v1/contact/', json=params,
+                                 auth=(self.api_key, ''))
+        res = json.loads(response.content.decode())
 
     def get_contacts_from_lead_id(self, lead_id):
         info = []
@@ -340,3 +345,20 @@ class Bot:
             return_opportunities.append(f"Value: {value_formatted}\n{note}")
 
         return return_opportunities
+
+    def create_lead(self, address):
+        params = {
+            "name": address,
+            "addresses": [
+                {
+                    "address_1": address,
+                    "country": "Canada"
+                }
+            ]
+        }
+
+        response = requests.post('https://api.close.com/api/v1/lead/', json=params,
+                                 auth=(self.api_key, ''))
+        res = json.loads(response.content.decode())
+
+        return res["id"]
