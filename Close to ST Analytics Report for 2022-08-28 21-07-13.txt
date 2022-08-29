@@ -1,0 +1,75 @@
+ANALYTICS REPORT
+Date: 2022-08-28
+Time: 21:07:13.562934
+
+Total Entries Checked on Close: 0
+Entries Checked:
+
+Total Entries Changes on Close: 0
+Entries Changed:
+
+New Close Mappings:
+	 - ST Customer: 22965632, ST Location: 22965636, Close Lead: lead_EFhM0QJfK7nZph1wcf2biUTOYbYonuDFGLtSp74LTD2
+	 - ST Customer: 22965632, ST Location: 22965636, Close Lead: lead_QhS7gKV7ZjlRVUNITksS7EB4blFYjlMxXMxbWotdS3w
+	 - ST Customer: 22965632, ST Location: 22965636, Close Lead: lead_XnsnKTDr1WCy2ncCN1vDt68I0BE4mFWmdtXAqVWp3Yp
+	 - ST Customer: 22965632, ST Location: 22965636, Close Lead: lead_HmYxcCKcIxaC4anqNMfPSkzH4rNRaAFwVSrgrU6VguD
+	 - ST Customer: 17992953, ST Location: 18005609, Close Lead: lead_EFhM0QJfK7nZph1wcf2biUTOYbYonuDFGLtSp74LTD2
+	 - ST Customer: 17992953, ST Location: 18005609, Close Lead: lead_QhS7gKV7ZjlRVUNITksS7EB4blFYjlMxXMxbWotdS3w
+	 - ST Customer: 17992953, ST Location: 18005609, Close Lead: lead_XnsnKTDr1WCy2ncCN1vDt68I0BE4mFWmdtXAqVWp3Yp
+	 - ST Customer: 17992953, ST Location: 18005609, Close Lead: lead_HmYxcCKcIxaC4anqNMfPSkzH4rNRaAFwVSrgrU6VguD
+	 - ST Customer: 17992955, ST Location: 18005611, Close Lead: lead_EFhM0QJfK7nZph1wcf2biUTOYbYonuDFGLtSp74LTD2
+	 - ST Customer: 17992955, ST Location: 18005611, Close Lead: lead_QhS7gKV7ZjlRVUNITksS7EB4blFYjlMxXMxbWotdS3w
+	 - ST Customer: 17992955, ST Location: 18005611, Close Lead: lead_XnsnKTDr1WCy2ncCN1vDt68I0BE4mFWmdtXAqVWp3Yp
+	 - ST Customer: 17992955, ST Location: 18005611, Close Lead: lead_HmYxcCKcIxaC4anqNMfPSkzH4rNRaAFwVSrgrU6VguD
+	 - ST Customer: 17992955, ST Location: 18005612, Close Lead: lead_EFhM0QJfK7nZph1wcf2biUTOYbYonuDFGLtSp74LTD2
+	 - ST Customer: 17992955, ST Location: 18005612, Close Lead: lead_QhS7gKV7ZjlRVUNITksS7EB4blFYjlMxXMxbWotdS3w
+	 - ST Customer: 17992955, ST Location: 18005612, Close Lead: lead_XnsnKTDr1WCy2ncCN1vDt68I0BE4mFWmdtXAqVWp3Yp
+	 - ST Customer: 17992955, ST Location: 18005612, Close Lead: lead_HmYxcCKcIxaC4anqNMfPSkzH4rNRaAFwVSrgrU6VguD
+	 - ST Customer: 17992956, ST Location: 18005613, Close Lead: lead_EFhM0QJfK7nZph1wcf2biUTOYbYonuDFGLtSp74LTD2
+	 - ST Customer: 17992956, ST Location: 18005613, Close Lead: lead_QhS7gKV7ZjlRVUNITksS7EB4blFYjlMxXMxbWotdS3w
+	 - ST Customer: 17992956, ST Location: 18005613, Close Lead: lead_XnsnKTDr1WCy2ncCN1vDt68I0BE4mFWmdtXAqVWp3Yp
+	 - ST Customer: 17992956, ST Location: 18005613, Close Lead: lead_HmYxcCKcIxaC4anqNMfPSkzH4rNRaAFwVSrgrU6VguD
+
+Location Duplicates:
+	 - lead_w0oVxIighaP05uEGuYIdNP3sX4he2tPwOz88VaQJItc
+	 - lead_EFhM0QJfK7nZph1wcf2biUTOYbYonuDFGLtSp74LTD2
+	 - lead_QhS7gKV7ZjlRVUNITksS7EB4blFYjlMxXMxbWotdS3w
+	 - lead_XnsnKTDr1WCy2ncCN1vDt68I0BE4mFWmdtXAqVWp3Yp
+	 - lead_HmYxcCKcIxaC4anqNMfPSkzH4rNRaAFwVSrgrU6VguD
+	 - lead_mZdJ6D6QNX7nQyHB93mfinNthJOvOFW3rT6iQKdtEDm
+	 - lead_F8rg71bqAJc63aZ0rSw9fwf3woJVXMNT7EZg5J7x3Qh
+	 - lead_gTNPqkhJE9sIxLxccZsdJXXr3RzS6dQWxQnCPZvLbRL
+	 - lead_GSVbMCZTPVQP9Zoc1b0ZLTSNWZJoSNLinPzIBQY8L6u
+	 - lead_WxgP7Vz2DluJZQFmPmPGXOr01nspr5v1BmDum51sk87
+	 - lead_MPyppUdEUfYtCohFCLl5GsTkXQt0pN8IQNdbpJ9ZVFV
+	 - lead_vlQwYJ6ffaYyOJ9yEOv6TeRlA1xlJzyXafCshB0A8Bb
+	 - lead_gyMs96L3BRXQvm4QpPRqZqDJpZ6e7OAFM8gaBO4Fcwj
+	 - lead_2vewonfIYA9cdTZXMUzWkQx2ZEOHIiorEppKchrXqzY
+	 - lead_bzdRCadeM6vjPXTZe0epOAbJKNUD2wDv2elFfn2B6bs
+	 - lead_q29Eb3BnjRcBjQYFwNgz25IqWWKMvh2iemNlugB3YnX
+
+Non-Mapped Locations:
+
+Error Locations:
+	 - ST Customer: 22965632, ST Location: 22965636, Close Lead: lead_EFhM0QJfK7nZph1wcf2biUTOYbYonuDFGLtSp74LTD2
+	 - ST Customer: 22965632, ST Location: 22965636, Close Lead: lead_QhS7gKV7ZjlRVUNITksS7EB4blFYjlMxXMxbWotdS3w
+	 - ST Customer: 22965632, ST Location: 22965636, Close Lead: lead_XnsnKTDr1WCy2ncCN1vDt68I0BE4mFWmdtXAqVWp3Yp
+	 - ST Customer: 22965632, ST Location: 22965636, Close Lead: lead_HmYxcCKcIxaC4anqNMfPSkzH4rNRaAFwVSrgrU6VguD
+	 - ST Customer: 17992953, ST Location: 18005609, Close Lead: lead_EFhM0QJfK7nZph1wcf2biUTOYbYonuDFGLtSp74LTD2
+	 - ST Customer: 17992953, ST Location: 18005609, Close Lead: lead_QhS7gKV7ZjlRVUNITksS7EB4blFYjlMxXMxbWotdS3w
+	 - ST Customer: 17992953, ST Location: 18005609, Close Lead: lead_XnsnKTDr1WCy2ncCN1vDt68I0BE4mFWmdtXAqVWp3Yp
+	 - ST Customer: 17992953, ST Location: 18005609, Close Lead: lead_HmYxcCKcIxaC4anqNMfPSkzH4rNRaAFwVSrgrU6VguD
+	 - ST Customer: 17992955, ST Location: 18005611, Close Lead: lead_EFhM0QJfK7nZph1wcf2biUTOYbYonuDFGLtSp74LTD2
+	 - ST Customer: 17992955, ST Location: 18005611, Close Lead: lead_QhS7gKV7ZjlRVUNITksS7EB4blFYjlMxXMxbWotdS3w
+	 - ST Customer: 17992955, ST Location: 18005611, Close Lead: lead_XnsnKTDr1WCy2ncCN1vDt68I0BE4mFWmdtXAqVWp3Yp
+	 - ST Customer: 17992955, ST Location: 18005611, Close Lead: lead_HmYxcCKcIxaC4anqNMfPSkzH4rNRaAFwVSrgrU6VguD
+	 - ST Customer: 17992955, ST Location: 18005612, Close Lead: lead_EFhM0QJfK7nZph1wcf2biUTOYbYonuDFGLtSp74LTD2
+	 - ST Customer: 17992955, ST Location: 18005612, Close Lead: lead_QhS7gKV7ZjlRVUNITksS7EB4blFYjlMxXMxbWotdS3w
+	 - ST Customer: 17992955, ST Location: 18005612, Close Lead: lead_XnsnKTDr1WCy2ncCN1vDt68I0BE4mFWmdtXAqVWp3Yp
+	 - ST Customer: 17992955, ST Location: 18005612, Close Lead: lead_HmYxcCKcIxaC4anqNMfPSkzH4rNRaAFwVSrgrU6VguD
+	 - ST Customer: 17992956, ST Location: 18005613, Close Lead: lead_EFhM0QJfK7nZph1wcf2biUTOYbYonuDFGLtSp74LTD2
+	 - ST Customer: 17992956, ST Location: 18005613, Close Lead: lead_QhS7gKV7ZjlRVUNITksS7EB4blFYjlMxXMxbWotdS3w
+	 - ST Customer: 17992956, ST Location: 18005613, Close Lead: lead_XnsnKTDr1WCy2ncCN1vDt68I0BE4mFWmdtXAqVWp3Yp
+	 - ST Customer: 17992956, ST Location: 18005613, Close Lead: lead_HmYxcCKcIxaC4anqNMfPSkzH4rNRaAFwVSrgrU6VguD
+
+Note: Contacts are not being checked because stuff is being dumb

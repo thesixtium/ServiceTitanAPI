@@ -1,4 +1,5 @@
 import json
+import time
 
 import requests
 import re
@@ -240,19 +241,11 @@ class Bot:
         response = requests.post('https://api.close.com/api/v1/activity/call/', json=params,
                                  auth=(self.api_key, ''))
 
-        if self.debug_mode:
-            print(f"In 'log_content'")
-            print("Params:")
-            print("\t" + str(params))
-            read_requests.read(response)
-            print()
-
         return response.content
 
     def get_contacts_from_lead_info(self, lead_id_info):
         res = json.loads(lead_id_info)
-
-        return res["data"]["contacts"]
+        return res["contacts"]
 
     def add_phone(self, lead_id, phone):
         params = {
@@ -261,7 +254,7 @@ class Bot:
             "phones": [
                 {
                     "phone": phone
-                 }
+                }
             ]
         }
 
@@ -271,8 +264,11 @@ class Bot:
 
     def get_contacts_from_lead_id(self, lead_id):
         info = []
+        start = time.time()
         while not info:
             info = self.get_contacts_from_lead_info(self.get_by_lead(lead_id))
+            if time.time() - start >= (60 * 1):
+                break
         return info
 
     def get_notes_from_lead_id(self, lead_id):
@@ -362,3 +358,129 @@ class Bot:
         res = json.loads(response.content.decode())
 
         return res["id"]
+
+    def add_or_update_st_lead_id(self, lead_id, st_customer_number):
+        custom_field_reference = "cf_e1mL7sxOcxoFcWyBIe0nTxKAspBV96QnhqYmMkgGEIg"
+        value_to_put = f"https://go.servicetitan.com/#/Location/{st_customer_number}"
+
+        params = {
+            f"custom.{custom_field_reference}": value_to_put,
+        }
+
+        response = requests.put(
+            f'https://api.close.com/api/v1/lead/{lead_id}',
+            json=params,
+            auth=(self.api_key, '')
+        )
+
+        res = json.loads(response.content.decode())
+
+    def get_by_st_lead_id(self, customer_number):
+        params = {
+            "limit": None,
+            "query": {
+                "negate": False,
+                "queries": [
+                    {
+                        "negate": False,
+                        "object_type": "lead",
+                        "type": "object_type"
+                    },
+                    {
+                        "negate": False,
+                        "queries": [
+                            {
+                                "negate": False,
+                                "queries": [
+                                    {
+                                        "condition": {
+                                            "mode": "full_words",
+                                            "type": "text",
+                                            "value": f"https://go.servicetitan.com/#/Customer/{customer_number}"
+                                        },
+                                        "field": {
+                                            "custom_field_id": "cf_e1mL7sxOcxoFcWyBIe0nTxKAspBV96QnhqYmMkgGEIg",
+                                            "type": "custom_field"
+                                        },
+                                        "negate": False,
+                                        "type": "field_condition"
+                                    }
+                                ],
+                                "type": "and"
+                            }
+                        ],
+                        "type": "and"
+                    }
+                ],
+                "type": "and"
+            },
+            "results_limit": None,
+            "sort": []
+        }
+
+        response = requests.post('https://api.close.com/api/v1/data/search/', json=params,
+                                 auth=(self.api_key, ''))
+
+        decoded_responce = response.content.decode("utf-8")
+
+        return_responce = []
+
+        for lead in re.finditer('(lead_)[^"]+', decoded_responce):
+            return_responce.append(lead.group())
+
+        return return_responce
+
+    def get_location_by_st_lead_id(self, st_location_number):
+        params = {
+            "limit": None,
+            "query": {
+                "negate": False,
+                "queries": [
+                    {
+                        "negate": False,
+                        "object_type": "lead",
+                        "type": "object_type"
+                    },
+                    {
+                        "negate": False,
+                        "queries": [
+                            {
+                                "negate": False,
+                                "queries": [
+                                    {
+                                        "condition": {
+                                            "mode": "full_words",
+                                            "type": "text",
+                                            "value": f"https://go.servicetitan.com/#/Location/{st_location_number}"
+                                        },
+                                        "field": {
+                                            "custom_field_id": "cf_e1mL7sxOcxoFcWyBIe0nTxKAspBV96QnhqYmMkgGEIg",
+                                            "type": "custom_field"
+                                        },
+                                        "negate": False,
+                                        "type": "field_condition"
+                                    }
+                                ],
+                                "type": "and"
+                            }
+                        ],
+                        "type": "and"
+                    }
+                ],
+                "type": "and"
+            },
+            "results_limit": None,
+            "sort": []
+        }
+
+        response = requests.post('https://api.close.com/api/v1/data/search/', json=params,
+                                 auth=(self.api_key, ''))
+
+        decoded_responce = response.content.decode("utf-8")
+
+        return_responce = []
+
+        for lead in re.finditer('(lead_)[^"]+', decoded_responce):
+            return_responce.append(lead.group())
+
+        return return_responce

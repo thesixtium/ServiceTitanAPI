@@ -19,14 +19,6 @@ class Bot:
         self.tenant_id = tenant_id
         self.debug_mode = debug_mode
 
-    def toggle_debug(self):
-        if self.debug_mode:
-            self.debug_mode = False
-            print("Debug mode is now off")
-        else:
-            self.debug_mode = True
-            print("Debug mode is now on")
-
     def get_access_token(self):
         headers = {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -39,13 +31,6 @@ class Bot:
 
         response = requests.post('https://auth.servicetitan.io/connect/token', headers=headers, data=data)
         res = json.loads(response.content.decode())
-
-        if self.debug_mode:
-            print("In 'get_access_token'")
-            print(f"Headers: {headers}")
-            print(f"Data: {data}")
-            read_requests.read(response)
-            print()
 
         return res["access_token"]
 
@@ -62,13 +47,6 @@ class Bot:
         }
 
         response = requests.get(request_url, headers=headers)
-
-        if self.debug_mode:
-            print("In 'connect'")
-            print(f"Headers: {headers}")
-            print(f"Request URL: {request_url}")
-            read_requests.read(response)
-            print()
 
         return response
 
@@ -89,13 +67,6 @@ class Bot:
 
         response = requests.get(request_url, headers=headers)
 
-        if self.debug_mode:
-            print(f"In 'get_customers_from_page' with 'page={page}'")
-            print(f"Headers: {headers}")
-            print(f"Request URL: {request_url}")
-            read_requests.read(response)
-            print()
-
         return response
 
     def refresh_customers(self, modifiedOnOrAfter):
@@ -103,12 +74,7 @@ class Bot:
         has_more = True
         return_data = []
 
-        if self.debug_mode:
-            print("In 'refresh_customers'")
-
         while has_more:
-            if self.debug_mode:
-                print(f"On page {page}")
 
             response = self.get_customers_from_page(modifiedOnOrAfter, page)
             content = response.content.decode()
@@ -125,14 +91,8 @@ class Bot:
 
         self.all_customers = return_data
 
-        if self.debug_mode:
-            print()
-
     def get_customers(self):
-        if self.debug_mode:
-            print("In 'get_customers'")
-            print(f"Returning {len(self.all_customers)} customers")
-            print()
+
         return self.all_customers
 
     def get_customer_data(self, customer_id):
@@ -149,13 +109,6 @@ class Bot:
         }
 
         response = requests.get(request_url, headers=headers)
-
-        if self.debug_mode:
-            print(f"In 'get_customer_data' with 'customer_id={customer_id}'")
-            print(f"Headers: {headers}")
-            print(f"Request URL: {request_url}")
-            read_requests.read(response)
-            print()
 
         return response.content.decode()
 
@@ -194,13 +147,6 @@ class Bot:
 
         response = requests.get(request_url, headers=headers)
 
-        if self.debug_mode:
-            print(f"In 'get_customer_data' with 'customer_id={customer_id}'")
-            print(f"Headers: {headers}")
-            print(f"Request URL: {request_url}")
-            read_requests.read(response)
-            print()
-
         return response.content.decode()
 
     def get_postal_code_from_customer_id(self, customer_id):
@@ -218,13 +164,6 @@ class Bot:
 
         response = requests.get(request_url, headers=headers)
 
-        if self.debug_mode:
-            print(f"In 'get_customer_data' with 'customer_id={customer_id}'")
-            print(f"Headers: {headers}")
-            print(f"Request URL: {request_url}")
-            read_requests.read(response)
-            print()
-
         return re.findall("[A-Z][0-9][A-Z][.|\s]{0,1}[0-9][A-Z][0-9]", response.content.decode())[0]
 
     def get_locations_from_customer_id(self, customer_id):
@@ -241,14 +180,6 @@ class Bot:
         }
 
         response = requests.get(request_url, headers=headers)
-        print(response.content.decode())
-
-        if self.debug_mode:
-            print(f"In 'get_locations_from_customer_id' with 'customer_id={customer_id}'")
-            print(f"Headers: {headers}")
-            print(f"Request URL: {request_url}")
-            read_requests.read(response)
-            print()
 
         response = response.content.decode()
         return_responce = []
@@ -258,6 +189,31 @@ class Bot:
             return_responce.append(re.sub('"street":"', "", i.group()))
 
         return return_responce
+
+    def get_locations_numbers_from_customer_id(self, customer_id):
+        request_url = 'https://api.servicetitan.io/crm/v2/tenant/' \
+                      + self.tenant_id \
+                      + '/locations?ids&customerId=' \
+                      + customer_id
+        access_token = self.get_access_token()
+        app_key = self.app_key
+
+        headers = {
+            'Authorization': access_token,
+            'ST-App-Key': app_key
+        }
+
+        response = requests.get(request_url, headers=headers)
+
+        response = response.content.decode()
+        return_response = []
+
+        res = json.loads(response)
+
+        for data in res["data"]:
+            return_response.append(data["id"])
+
+        return return_response
 
     def get_notes_from_customer_id(self, customer_id):
         request_url = 'https://api.servicetitan.io/crm/v2/tenant/' \
@@ -274,13 +230,6 @@ class Bot:
         }
 
         response = requests.get(request_url, headers=headers)
-
-        if self.debug_mode:
-            print(f"In 'get_locations_from_customer_id' with 'customer_id={customer_id}'")
-            print(f"Headers: {headers}")
-            print(f"Request URL: {request_url}")
-            read_requests.read(response)
-            print()
 
         response = response.content.decode()
         responces = []
@@ -305,28 +254,75 @@ class Bot:
 
         response = requests.get(request_url, headers=headers)
 
-        if self.debug_mode:
-            print(f"In 'get_locations_from_customer_id' with 'customer_id={customer_id}'")
-            print(f"Headers: {headers}")
-            print(f"Request URL: {request_url}")
-            read_requests.read(response)
-            print()
-
         response = response.content.decode()
         res = json.loads(response)
-
-        if self.debug_mode:
-            print("Res:")
-            print(res)
 
         return_list = []
         value = 0
 
         for job in res["data"]:
-            job_status = job["jobStatus"]
             completed_on = job["completedOn"]
             summary = job["summary"]
-            sold_by = job["customFields"][1]["value"]
+            sold_by = "Unknown"
+            if job["customFields"]:
+                sold_by = job["customFields"][1]["value"]
+            appointments = self.get_appointments_from_job_id(job["id"])
+            estimates = self.get_estimates_from_job_id(job["id"])
+            invoices = self.get_invoices_from_job_id(job["id"])
+
+            return_string = f"Job URL: https://go.servicetitan.com/#/Job/Index/{job['id']}\n"
+            return_string += f'Job ID: {job["id"]}\t|\tSold By: {sold_by}\n'
+            return_string += f'Date Completed: {completed_on}\t|\tSummary: {summary}\n'
+
+            return_string += "Appointment ID's: "
+            for appointment in appointments:
+                return_string += f" {appointment},"
+
+            return_string = return_string[:-1]
+
+            return_string += "\n\nEstimate ID's: "
+            for estimate in estimates:
+                return_string += f"\n\t- https://go.servicetitan.com/#/estimate/{estimate},"
+
+            return_string = return_string[:-1]
+
+            return_string += "\n\nItems: "
+            for item in invoices["items"]:
+                return_string += f"\n\t- ${item[1]}: {item[0]} - {item[2]}"
+
+            return_list.append(return_string)
+            value += invoices["value"]
+
+        return [return_list, value]
+
+    def get_jobs_from_location_id(self, location_id):
+        request_url = f'https://api.servicetitan.io/jpm/v2/tenant/' \
+                      f'{self.tenant_id}' \
+                      f'/jobs?page&locationId=' \
+                      f'{location_id}'
+
+        access_token = self.get_access_token()
+        app_key = self.app_key
+
+        headers = {
+            'Authorization': access_token,
+            'ST-App-Key': app_key
+        }
+
+        response = requests.get(request_url, headers=headers)
+
+        response = response.content.decode()
+        res = json.loads(response)
+
+        return_list = []
+        value = 0
+
+        for job in res["data"]:
+            completed_on = job["completedOn"]
+            summary = job["summary"]
+            sold_by = "Unknown"
+            if job["customFields"]:
+                sold_by = job["customFields"][1]["value"]
             appointments = self.get_appointments_from_job_id(job["id"])
             estimates = self.get_estimates_from_job_id(job["id"])
             invoices = self.get_invoices_from_job_id(job["id"])
@@ -382,12 +378,20 @@ class Bot:
         for invoice in res["data"]:
             return_data["value"] += float(invoice["total"])
             return_data["ids"].append(invoice["id"])
-            for item in invoice["items"]:
-                return_data["items"].append([
-                    item["skuName"],
-                    item["price"],
-                    re.sub("T.*Z", "", item["serviceDate"])
-                ])
+            if invoice["items"]:
+                for item in invoice["items"]:
+                    if item["serviceDate"]:
+                        return_data["items"].append([
+                            item["skuName"],
+                            item["price"],
+                            re.sub("T.*Z", "", item["serviceDate"])
+                        ])
+                    else:
+                        return_data["items"].append([
+                            item["skuName"],
+                            item["price"],
+                            None
+                        ])
 
         return return_data
 
