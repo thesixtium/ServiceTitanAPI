@@ -71,5 +71,6 @@ def test(yesterday):
     analytics.run(all_analytics, changes)
     log("")
 
-if __name__ == '__main__':
+
+if __name__ == '__test__':
     main()
