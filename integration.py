@@ -114,7 +114,7 @@ class Bot:
                     )
 
             log(f"Searching from url {customer_number} for the second time...")
-            search_from_url = self.close_bot.get_by_st_lead_id(customer_number)
+            search_from_url = self.close_bot.get_by_st_lead_id(st_location_number)
             log(f"Search complete, here are the results: {search_from_url}")
 
             if len(search_from_url) == 0:

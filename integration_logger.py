@@ -1,7 +1,6 @@
 import datetime
 import re
 
-
 def log(change):
     now = datetime.datetime.now()
     date = str(now)

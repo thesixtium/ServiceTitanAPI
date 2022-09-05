@@ -396,7 +396,7 @@ class Bot:
                                         "condition": {
                                             "mode": "full_words",
                                             "type": "text",
-                                            "value": f"https://go.servicetitan.com/#/Customer/{customer_number}"
+                                            "value": f"https://go.servicetitan.com/#/Location/{customer_number}"
                                         },
                                         "field": {
                                             "custom_field_id": "cf_e1mL7sxOcxoFcWyBIe0nTxKAspBV96QnhqYmMkgGEIg",
@@ -413,9 +413,7 @@ class Bot:
                     }
                 ],
                 "type": "and"
-            },
-            "results_limit": None,
-            "sort": []
+            }
         }
 
         response = requests.post('https://api.close.com/api/v1/data/search/', json=params,
@@ -425,7 +423,9 @@ class Bot:
 
         return_responce = []
 
-        for lead in re.finditer('(lead_)[^"]+', decoded_responce):
+        print(f"https://go.servicetitan.com/#/Location/{customer_number}")
+
+        for lead in re.finditer(r'(lead_)[^"]+', decoded_responce):
             return_responce.append(lead.group())
 
         return return_responce
@@ -480,7 +480,9 @@ class Bot:
 
         return_responce = []
 
-        for lead in re.finditer('(lead_)[^"]+', decoded_responce):
-            return_responce.append(lead.group())
+        res = json.loads(decoded_responce)
+
+        for entry in res["data"]:
+            return_responce.append(entry["id"])
 
         return return_responce
