@@ -1,11 +1,19 @@
-import integration
-import password
 import datetime
-from time import sleep
-import threading
-import numpy as np
+import password
 import analytics
+import threading
+import integration
+import numpy as np
+import multiprocessing
+from time import sleep
 from integration_logger import log
+
+thread_analytics = []
+thread_analytics_new_mappings = []
+thread_analytics_location_duplicates = []
+thread_analytics_non_mapped_locations = []
+thread_analytics_error_locations = []
+thread_changes = []
 
 
 def main(cores, first=False):
@@ -22,18 +30,6 @@ def main(cores, first=False):
         else:
             print(f"Not 14:00, currently {today.hour}:{today.minute}")
             sleep(40)
-
-
-thread_analytics = []
-thread_changes = []
-
-all_people = []
-        all_analytics = []
-        analytics_new_mappings = []
-        analytics_location_duplicates = []
-        analytics_non_mapped_locations = []
-        analytics_error_locations = []
-        changes = []
 
 
 def go(date, cores):
@@ -54,14 +50,22 @@ def go(date, cores):
     split_customers = np.array_split(np_customers, cores)
 
     global thread_analytics
+    global thread_analytics_new_mappings
+    global thread_analytics_location_duplicates
+    global thread_analytics_non_mapped_locations
+    global thread_analytics_error_locations
     global thread_changes
 
     threads = []
     thread_analytics = [[] for _ in range(cores)]
+    thread_analytics_new_mappings = [[] for _ in range(cores)]
+    thread_analytics_location_duplicates = [[] for _ in range(cores)]
+    thread_analytics_non_mapped_locations = [[] for _ in range(cores)]
+    thread_analytics_error_locations = [[] for _ in range(cores)]
     thread_changes = [[] for _ in range(cores)]
 
     for i in range(0, cores):
-        threads.append(myThread(split_customers[i], integration_bot, i))
+        threads.append(IntegrationThread(split_customers[i], i))
         threads[i].name = f"Thread {i}"
         threads[i].start()
 
@@ -70,109 +74,61 @@ def go(date, cores):
             while thread.is_alive():
                 pass
 
-    all_people = []
-    all_analytics = []
-    analytics_new_mappings = []
-    analytics_location_duplicates = []
-    analytics_non_mapped_locations = []
-    analytics_error_locations = []
-    changes = []
+    all_analytics = [item for sublist in thread_analytics for item in sublist]
+    analytics_new_mappings = [item for sublist in thread_analytics_new_mappings for item in sublist]
+    analytics_location_duplicates = [item for sublist in thread_analytics_location_duplicates for item in sublist]
+    analytics_non_mapped_locations = [item for sublist in thread_analytics_non_mapped_locations for item in sublist]
+    analytics_error_locations = [item for sublist in thread_analytics_error_locations for item in sublist]
+    changes = [item for sublist in thread_changes for item in sublist]
 
-    for result in thread_analytics:
-        for entry in result:
-            log(f"Adding analytic: {entry}")
-            all_analytics.append(entry)
+    changes = [
+        changes,
+        analytics_new_mappings,
+        analytics_location_duplicates,
+        analytics_non_mapped_locations,
+        analytics_error_locations
+    ]
 
-    for change in thread_changes:
-        for entry in change:
-            log(f"Adding change: {change}")
-            all_changes.append(entry)
-
-    analytics.run(all_analytics, all_changes)
+    analytics.run(all_analytics, changes)
 
 
-class myThread(threading.Thread):
-    def __init__(self, all_customers, integration_bot, i):
+class IntegrationThread(threading.Thread):
+    def __init__(self, all_customers, i):
         threading.Thread.__init__(self)
-        self.integration_bot = integration_bot
-        self.all_customers = all_customers
-        self.i = i
-
-    def run(self):
-        global thread_analytics
-        global thread_changes
-
-        for customer in self.all_customers:
-            log(f"On customer {customer} for {self.name}")
-            pair = self.integration_bot.map_single_st_customer_to_close_lead(customer)
-            for p in pair:
-                log(f"On pair {pair} for {self.name}")
-                thread_analytics[self.i].append(p[1])
-                if self.integration_bot.check_pair(p):
-                    thread_changes[self.i].append(p[1])
-
-
-def test():
-    for i in range(0, 10):
-
-        integration_bot = integration.Bot(
+        self.integration_bot = integration.Bot(
             password.get_close_api_key(),
             password.get_client_id(),
             password.get_client_secret(),
             password.get_app_key(),
             password.get_tenant_id()
         )
+        self.all_customers = all_customers
+        self.i = i
 
-        all_customers = [
-            "22965632",
-            "17992953",
-            "17992954",
-            "17992955",
-            "17992956",
-            "17998817"
-        ]
+    def run(self):
+        global thread_analytics
+        global thread_analytics_new_mappings
+        global thread_analytics_location_duplicates
+        global thread_analytics_non_mapped_locations
+        global thread_analytics_error_locations
+        global thread_changes
 
-        all_people = []
-        all_analytics = []
-        analytics_new_mappings = []
-        analytics_location_duplicates = []
-        analytics_non_mapped_locations = []
-        analytics_error_locations = []
-        changes = []
-
-        log("New Run")
-        log("Integration start")
-        log("Starting to go through all customers")
-
-        for customer in all_customers:
+        for customer in self.all_customers:
             log(f"Starting on customer {customer}")
-            results = integration_bot.map_single_st_customer_to_close_lead(customer)
+            results = self.integration_bot.map_single_st_customer_to_close_lead(customer)
             pair = results[0]
             log(f"{customer} pair is {pair}")
-            analytics_new_mappings.append(results[1])
-            analytics_location_duplicates.append(results[2])
-            analytics_non_mapped_locations.append(results[3])
-            analytics_error_locations.append(results[4])
+            thread_analytics_new_mappings[self.i].append(results[1])
+            thread_analytics_location_duplicates[self.i].append(results[2])
+            thread_analytics_non_mapped_locations[self.i].append(results[3])
+            thread_analytics_error_locations[self.i].append(results[4])
+
             for p in pair:
                 log(f"Working on customer {customer} and pair {p}")
-                if integration_bot.check_pair(p):
-                    changes.append(p[1])
-                all_people.append(p)
-                all_analytics.append(p[1])
-
-        changes = [
-            changes,
-            analytics_new_mappings,
-            analytics_location_duplicates,
-            analytics_non_mapped_locations,
-            analytics_error_locations
-        ]
-
-        analytics.run(all_analytics, changes)
-        log("")
+                if self.integration_bot.check_pair(p):
+                    thread_changes[self.i].append(p[1])
+                thread_analytics[self.i].append(p[1])
 
 
 if __name__ == '__main__':
-    # main()
-    # run()
-    test()
+    main(multiprocessing.cpu_count())

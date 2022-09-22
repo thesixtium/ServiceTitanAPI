@@ -32,7 +32,6 @@ def test(yesterday):
     for customer in all_customers:
         log(f"\t - {customer}")
 
-    all_people = []
     all_analytics = []
     analytics_new_mappings = []
     analytics_location_duplicates = []
@@ -57,7 +56,6 @@ def test(yesterday):
             log(f"Working on customer {customer} and pair {p}")
             if integration_bot.check_pair(p):
                 changes.append(p[1])
-            all_people.append(p)
             all_analytics.append(p[1])
 
     changes = [
