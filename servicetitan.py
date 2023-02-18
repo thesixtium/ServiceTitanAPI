@@ -105,6 +105,24 @@ class ServiceTitan:
 
         return return_jobs
 
+    def get_test_job(self, job_id):
+        request_url = f'{self.environment_url}' \
+                      f'jpm/v2/tenant/' \
+                      f'{self.tenant_id}' \
+                      f'/jobs/' \
+                      f'{job_id}'
+
+        headers = {
+            'Authorization': self.access_token,
+            'ST-App-Key': self.app_key
+        }
+
+        response = requests.get(request_url, headers=headers)
+        response = response.content.decode()
+        res = json.loads(response)
+
+        return [self.get_job_invoice_info(res)]
+
     # Get the total value of a job and its items based on its invoice
     def get_job_invoice_info(self, job):
         request_url = self.environment_url \
