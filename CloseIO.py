@@ -81,6 +81,30 @@ class CloseIO:
 
         return return_response
 
+    def create_close_lead(self, street):
+
+        data = {
+            "name": street,
+            "addresses": [
+                {
+                    "country": "Canada",
+                }
+            ]
+        }
+
+        lead_response = requests.post(
+            f'https://api.close.com/api/v1/lead/',
+            auth=(self.api_key, ''),
+            json=data
+        ).content.decode()
+
+        lead_res = json.loads(lead_response)
+
+        return [{
+            "lead_id": lead_res["id"],
+            "oppo_id": []
+        }]
+
     def get_close_leads_by_lead_id(self, id):
         return_response = []
 
@@ -163,7 +187,7 @@ class CloseIO:
         if "lead_id" not in res:
             res["lead_id"] = "UNKNOWN"
 
-        return f"CREATE: {service_titan_job['id']} on {res['lead_name']}: {res['lead_id']}"
+        return ["CREATE OPPO", f"{service_titan_job['id']} on {res['lead_name']}: {res['lead_id']}"]
 
     def patch_opportunity(self, service_titan_job, close_lead_id, opportunity_id):
         params = self.service_titan_job_to_close_oppo(service_titan_job, close_lead_id)
@@ -183,4 +207,4 @@ class CloseIO:
         if "lead_id" not in res:
             res["lead_id"] = "UNKNOWN"
 
-        return f"PATCH: {service_titan_job['id']} on {res['lead_name']}: {res['lead_id']}"
+        return ["PATCH OPPO", f"{service_titan_job['id']} on {res['lead_name']}: {res['lead_id']}"]

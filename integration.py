@@ -1,6 +1,7 @@
 import CloseIO
 import ServiceTitan
 import password
+from Logger import log
 
 
 class Integration:
@@ -52,8 +53,11 @@ class Integration:
         close_io_bot.get_opportunity_info_from_lead(test_lead)
 
     def run(self):
+        log(["START", ""])
+
         # Steps:
         #   0. Set up bots
+        log(["PROG INFO", "Setting up bots"])
         service_titan_bot = ServiceTitan.ServiceTitan(
             password.get_client_id(),
             password.get_client_secret(),
@@ -66,45 +70,61 @@ class Integration:
         )
 
         #   1. Get all modified jobs from ServiceTitan (clean them with servicetitan_jobs_to_close_opportunities)
-        recently_modified_service_titan_jobs = service_titan_bot.get_modified_jobs(limit_amount=6)
+        log(["PROG INFO", "Get all modified jobs from ServiceTitan"])
+        recently_modified_service_titan_jobs = service_titan_bot.get_modified_jobs()
         cleaned_modified_service_titan_jobs = self.servicetitan_jobs_to_close_opportunities(
             recently_modified_service_titan_jobs
         )
+        log(["PROG INFO", f"Number of Modified Jobs: {len(cleaned_modified_service_titan_jobs)}"])
 
         #   2. Map each job to a Close location (and for each Close location, get all opportunity notes)
+        log(["PROG INFO", "Map each job to close location"])
         service_titan_jobs_to_close_locations = []
         for job in cleaned_modified_service_titan_jobs:
-            leads = close_io_bot.get_close_leads_by_address_string(job["address"])
-            opportunities = []
+            leads = close_io_bot.get_close_leads_by_address_string(job["address"]["street"])
+            if len(leads) == 0:
+                leads = close_io_bot.create_close_lead(job["address"]["street"])
+                log([f'CREATE LEAD", f"Created lead for {job["address"]["street"]}'])
 
             for lead in leads:
+                opportunities = []
                 lead_opportunities = close_io_bot.get_opportunity_info_from_lead(lead)
                 for lead_opportunity in lead_opportunities:
                     opportunities.append(lead_opportunity)
 
-            service_titan_jobs_to_close_locations.append({
-                "job": job,
-                "opportunities": opportunities
-            })
+                service_titan_jobs_to_close_locations.append({
+                    "lead_id": lead["lead_id"],
+                    "job": job,
+                    "opportunities": opportunities
+                })
+        log(["PROG INFO", f"Number of Job, Lead, Opportunity Mappings: {len(service_titan_jobs_to_close_locations)}"])
 
         #   3. See if each ServiceTitan modified job is in Close via Job ID matching
-        changes = []
+        log(["PROG INFO", "Work through each ServiceTitan job and CLose match"])
         for match in service_titan_jobs_to_close_locations:
-            match_job_id = match["job"]["id"]
-            for opportunity in match["opportunities"]:
-                if match_job_id not in opportunity["note"]:
-                    #   4. If modified job not found, add jobs as new opportunity
-                    changes.append(close_io_bot.create_opportunity(match["job"], opportunity["lead_id"]))
-                else:
-                    #   5. If modified job found, update it
-                    changes.append(
-                        close_io_bot.patch_opportunity(match["job"], opportunity["lead_id"], opportunity["oppo_id"]))
+            if "lead_id" not in match:
+                continue
+            if "job" not in match:
+                continue
+            if "opportunities" not in match:
+                continue
 
-        #   6. Return update log
-        with open("log.txt", "w") as text_file:
-            for change in changes:
-                print(change)
-                text_file.write(change)
+            lead_id = match["lead_id"]
+            match_job_id = match["job"]["id"]
+            opportunity_found = False
+            log(["PROG INFO", f"On lead {lead_id} with match_job_id of {match_job_id}"])
+
+            for opportunity in match["opportunities"]:
+                if ("note" not in opportunity or str(match_job_id) in opportunity["note"]) and not opportunity_found:
+                    opportunity_found = True
+                    #   5. If modified job found, update it
+                    log(close_io_bot.patch_opportunity(match["job"], lead_id, opportunity["oppo_id"]))
+            if not opportunity_found:
+                #   4. If modified job not found, add jobs as new opportunity
+                log(close_io_bot.create_opportunity(match["job"], lead_id))
+
+        log(["END", ""])
+
 
     def test(self):
         # Steps:
@@ -132,8 +152,7 @@ class Integration:
         cleaned_modified_service_titan_jobs = self.servicetitan_jobs_to_close_opportunities(
             recently_modified_service_titan_jobs
         )
-        print(f"#1. Number of Modified Jobs: {len(cleaned_modified_service_titan_jobs)}")
-
+        log(["PROG INFO", f"Number of Modified Jobs: {len(cleaned_modified_service_titan_jobs)}"])
         #   2. Map each job to a Close location (and for each Close location, get all opportunity notes)
         service_titan_jobs_to_close_locations = []
         for job in cleaned_modified_service_titan_jobs:
@@ -150,14 +169,9 @@ class Integration:
                     "job": job,
                     "opportunities": opportunities
                 })
-        print(f"#2. Job, Lead, Opportunity Mappings: {len(service_titan_jobs_to_close_locations)}")
-        for i in range(len(service_titan_jobs_to_close_locations)):
-            print(f"\t\tJob {i+1} with lead ID {service_titan_jobs_to_close_locations[i]['lead_id']} has"
-                  f" {len(service_titan_jobs_to_close_locations[i]['opportunities'])} opportunities")
+        log(["PROG INFO", f"Number of Job, Lead, Opportunity Mappings: {len(service_titan_jobs_to_close_locations)}"])
 
         #   3. See if each ServiceTitan modified job is in Close via Job ID matching
-        changes = []
-
         for match in service_titan_jobs_to_close_locations:
             if "lead_id" not in match:
                 continue
@@ -169,29 +183,12 @@ class Integration:
             lead_id = match["lead_id"]
             match_job_id = match["job"]["id"]
             opportunity_found = False
-            print(f"\t\t{lead_id}")
 
-            #TODO: What if no location exists / other edge cases
             for opportunity in match["opportunities"]:
                 if ("note" not in opportunity or str(match_job_id) in opportunity["note"]) and not opportunity_found:
                     opportunity_found = True
                     #   5. If modified job found, update it
-                    changes.append(close_io_bot.patch_opportunity(match["job"], lead_id, opportunity["oppo_id"]))
-                    print(f"\t\t\t\tPATCH")
-                    print(f"\t\t\t\t{len(changes)}: {changes[-1]} [{match['job']}, "
-                          f"{lead_id}, {opportunity['oppo_id']}]")
+                    log(close_io_bot.patch_opportunity(match["job"], lead_id, opportunity["oppo_id"]))
             if not opportunity_found:
                 #   4. If modified job not found, add jobs as new opportunity
-                changes.append(close_io_bot.create_opportunity(match["job"], lead_id))
-                print(f"\t\t\t\tCREATE")
-
-        print(f"#3. Changes: {len(changes)}")
-        for i in range(len(changes)):
-            print(f"\t\tChange {i + 1}: {changes[i]}")
-
-        #   6. Return update log
-        with open("log.txt", "w") as text_file:
-            for change in changes:
-                text_file.write(change)
-                text_file.write("\n")
-
+                log(close_io_bot.create_opportunity(match["job"], lead_id))
